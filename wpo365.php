@@ -47,5 +47,18 @@
         require_once( dirname(__FILE__) . "/wpo365-redux-config.php");
     }
     add_action("plugins_loaded", "configure_wpo365_redux", 30);
+
+    // Show admin notification when WPO365 not properly configured
+    add_action("admin_notices", function() {
+
+        if(empty($GLOBALS["wpo365_options"]["tenant_id"])
+            || empty($GLOBALS["wpo365_options"]["application_id"])
+            || empty($GLOBALS["wpo365_options"]["application_secret"])
+            || empty($GLOBALS["wpo365_options"]["redirect_url"])) {
+                echo "<div class=\"notice notice-error\"><p>" . __("Please visit http://www.wpo365.com/how-to-install-wordpress-office-365-login-plugin/ for a quick reference on how to properly configure the WPO365-login plugin using the WPO365 menu to your left.") . "</p></div>";
+                echo "<div class=\"notice notice-warning is-dismissible\"><p>" . __("The Wordpress + Office 365 login plugin protects most of Wordpress but in case of a public facing intranet it is strongly advised to block anonymous access to the Wordpress Upload directory") . "</p></div>";
+        }
+        
+    });
     
 ?>
