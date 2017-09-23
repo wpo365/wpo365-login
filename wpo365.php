@@ -1,12 +1,12 @@
 <?php
     /**
      *  Plugin Name: Wordpress + Office 365 login
-     *  Plugin URI: http://www.wpo365.com/downloads/wordpress-office-365-login/
+     *  Plugin URI: https://www.wpo365.com/downloads/wordpress-office-365-login/
      *  Github URI: https://github.com/wpo365/wpo365-login
      *  Description: Wordpress + Office 365 login allows Micrsoft O365 users to seemlessly and securely log on to your corporate Wordpress intranet. The plugin will create a Wordpress user for each corporate user when logged on to Office 365 and thus avoiding the default Wordpress login screen: No username or password required.
      *  Version: 1.0
-     *  Author: Marco
-     *  Author URI: http://wpo365.com
+     *  Author: info@wpo365.com
+     *  Author URI: https://wpo365.com
      *  License: GPL2+
      */
     
@@ -53,9 +53,8 @@
 
         if(empty($GLOBALS["wpo365_options"]["tenant_id"])
             || empty($GLOBALS["wpo365_options"]["application_id"])
-            || empty($GLOBALS["wpo365_options"]["application_secret"])
             || empty($GLOBALS["wpo365_options"]["redirect_url"])) {
-                echo "<div class=\"notice notice-error\"><p>" . __("Please visit http://www.wpo365.com/how-to-install-wordpress-office-365-login-plugin/ for a quick reference on how to properly configure the WPO365-login plugin using the WPO365 menu to your left.") . "</p></div>";
+                echo "<div class=\"notice notice-error\"><p>" . __("Please visit https://www.wpo365.com/how-to-install-wordpress-office-365-login-plugin/ for a quick reference on how to properly configure the WPO365-login plugin using the WPO365 menu to your left.") . "</p></div>";
                 echo "<div class=\"notice notice-warning is-dismissible\"><p>" . __("The Wordpress + Office 365 login plugin protects most of Wordpress but in case of a public facing intranet it is strongly advised to block anonymous access to the Wordpress Upload directory") . "</p></div>";
         }
         

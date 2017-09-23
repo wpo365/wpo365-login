@@ -43,7 +43,6 @@
             // Don't allow access to the front end when WPO365 is unconfigured
             if((empty($GLOBALS["wpo365_options"]["tenant_id"])
                 || empty($GLOBALS["wpo365_options"]["application_id"])
-                || empty($GLOBALS["wpo365_options"]["application_secret"])
                 || empty($GLOBALS["wpo365_options"]["redirect_url"])) 
                 && !is_admin()) {
                 Logger::write_log("INFO", "WPO365 not configured");
@@ -101,13 +100,16 @@
                 "redirect_uri" => $GLOBALS["wpo365_options"]["redirect_url"],
                 "response_mode" => "form_post",
                 "scope" => $GLOBALS["wpo365_options"]["scope"],
-                "resource" => $GLOBALS["wpo365_options"]["application_id"],
+                "resource" => $GLOBALS["wpo365_options"]["application_id"], // basically the app is asking permissiong to access itself and 
+                                                                            // this scenario is only supported when using applciation id instead of application id uri
                 "state" => Auth::get_redirect_to((isset($_SERVER["HTTPS"]) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"),
                 "nonce" => $nonce
             );
 
-            $authorizeUrl = "https://login.microsoftonline.com/" . $GLOBALS["wpo365_options"]["tenant_id"] . "/oauth2/authorize?" . http_build_query($params);
+            $authorizeUrl = "https://login.microsoftonline.com/" . $GLOBALS["wpo365_options"]["tenant_id"] . "/oauth2/authorize?" . http_build_query($params, "", "&");
+
             Logger::write_log("INFO", "Getting fresh id and authorization tokens");
+            Logger::write_log("INFO", "Authorization URL: " . $authorizeUrl);
 
             // Redirect to Microsoft Authorization Endpoint
             wp_redirect($authorizeUrl);

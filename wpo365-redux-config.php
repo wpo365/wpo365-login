@@ -100,7 +100,7 @@
 
     $args["admin_bar_links"][] = array(
         "id"    => "wpo365-website",
-        "href"  => "http://www.wpo365.com/",
+        "href"  => "https://www.wpo365.com/",
         "title" => __("WPO365 Website", "wpo-365-options"),
     );
 
@@ -229,16 +229,16 @@
                     "content" => "You can find this in the Azure Portal. Click Azure Active Directory, click App Registrations, choose the application and locate the Application Id on the application page.",
                 )
            ),
-            array(
-                "id"       => "application_secret",
+           array(
+                "id"       => "application_uri",
                 "type"     => "text",
-                "title"    => __("AAD Application Secret", "wpo-365-options"),
-                "desc"     => __("Application Secret (Key) for the WPO365 App Registration in Azure Active Directory", "wpo-365-options"),
+                "title"    => __("AAD Application ID URI", "wpo-365-options"),
+                "desc"     => __("The Application ID URI assigned to your app when you registered it with Azure AD", "wpo-365-options"),
                 //"subtitle" => __("Example subtitle.", "wpo-365-options"),
                 "hint"     => array(
-                    "content" => "Click Azure Active Directory, click App Registrations, choose the application and locate the appropriate secret on the Keys page.",
+                    "content" => "You can find this in the Azure Portal. Click Azure Active Directory, click App Registrations, choose the application and locate the Application ID URI on the application page.",
                 )
-           ),
+            ),
             array(
                 "id"       => "scope",
                 "type"     => "text",
@@ -275,71 +275,11 @@
     ));
 
     Redux::setSection($opt_name, array(
-        "title"  => __("SharePoint Online", "wpo-365-options"),
-        "id"     => "spo_config",
-        "desc"   => __("Configuration Section for relevant SharePoint Online settings", "wpo-365-options"),
-        //"icon"   => "el el-home",
-        "fields" => array(
-            array(
-                "id"       => "spo_home",
-                "type"     => "text",
-                "title"    => __("SharePoint Home", "wpo-365-options"),
-                "desc"     => __("URL that is the home address of the SharePoint Online tenant", "wpo-365-options"),
-                //"subtitle" => __("Example subtitle.", "wpo-365-options"),
-                "hint"     => array(
-                    "content" => "E.g. https://your-tentant.sharepoint.com withouth /SitePages/Home.aspx",
-                )
-           ),
-        )
-    ));
-
-    Redux::setSection($opt_name, array(
         "title"  => __("Miscellaneaous", "wpo-365-options"),
         "id"     => "misc_config",
         "desc"   => __("Configuration Section for miscellaneous settings", "wpo-365-options"),
         //"icon"   => "el el-home",
         "fields" => array(
-            array(
-                "id"       => "cdn_bootstrap_css",
-                "type"     => "text",
-                "title"    => __("Bootstrap CSS", "wpo-365-options"),
-                "desc"     => __("CDN URL to download bootstrap CSS from", "wpo-365-options"),
-                //"subtitle" => __("Example subtitle.", "wpo-365-options"),
-                "default"  => "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css",
-                "hint"     => array(
-                    "content" => "The current version was tested with https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css",
-                )
-           ),
-           array(
-                "id"       => "cdn_bootstrap_theme_css",
-                "type"     => "text",
-                "title"    => __("Bootstrap theme CSS", "wpo-365-options"),
-                "desc"     => __("CDN URL to download bootstrap theme CSS from", "wpo-365-options"),
-                //"subtitle" => __("Example subtitle.", "wpo-365-options"),
-                //"default"  => "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css",
-                "hint"     => array(
-                    "content" => "The current version was tested with ???", // TODO test with a bootstrap theme
-                )
-            ),
-            array(
-                "id"       => "cdn_knockout_js",
-                "type"     => "text",
-                "title"    => __("Knockout JS", "wpo-365-options"),
-                "desc"     => __("CDN URL to download Knockout JS from", "wpo-365-options"),
-                //"subtitle" => __("Example subtitle.", "wpo-365-options"),
-                "default"  => "https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-debug.js",
-                "hint"     => array(
-                    "content" => "The current version was tested with https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-debug.js",
-                )
-            ),
-            array(
-                "id"       => "replace_wpautop",
-                "type"     => "checkbox",
-                "title"    => __("Replace the_content filter", "wpo-365-options"),
-                "subtitle" => __("", "wpo-365-options"),
-                "desc"     => __("Replace the default the_content filter (recommended)", "wpo-365-options"),
-                "default"  => "1",
-            ),
             array(
                 "id"       => "debug_mode",
                 "type"     => "checkbox",
