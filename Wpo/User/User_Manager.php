@@ -129,7 +129,7 @@
             $usr_old = wp_get_current_user();
             $usr_meta = get_user_meta($usr_old->ID);
 
-            Logger::write_log("INFO", "New email: " . $_POST["email"]);
+            Logger::write_log("DEBUG", "New email: " . $_POST["email"]);
             
             if(isset($_POST["email"])
                 && isset($usr_meta["auth_source"]) 

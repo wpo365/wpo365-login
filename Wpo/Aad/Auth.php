@@ -102,7 +102,7 @@
                 "scope" => $GLOBALS["wpo365_options"]["scope"],
                 "resource" => $GLOBALS["wpo365_options"]["application_id"], // basically the app is asking permissiong to access itself and 
                                                                             // this scenario is only supported when using applciation id instead of application id uri
-                "state" => Auth::get_redirect_to((isset($_SERVER["HTTPS"]) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"),
+                "state" => (isset($_SERVER["HTTPS"]) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]",
                 "nonce" => $nonce
             );
 
@@ -296,11 +296,12 @@
          */
         private static function get_redirect_to($url) {
 
-            if(empty($url) || strpos($url, "?") === false) {
+            // Return base url if argument is missing
+            if(empty($url)) {
                 return get_site_url();
             }
 
-            $query_string = explode("?", $url)[1];
+            $query_string = explode("?", $url);
             parse_str($query_string, $out);
             
             if(isset($out["redirect_to"])) {
