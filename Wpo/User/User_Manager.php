@@ -120,16 +120,25 @@
          *
          * @since   1.0
          * @param   array   errors => Existing errors (from Wordpress)
-         * @param           update =>
+         * @param   bool    update => true when updating an existing user otherwise false
          * @param   WPUser  usr_new => Updated user
          * @return  void
          */
-        public static function prevent_email_change( $errors, $update, $usr_new ) {
-            $usr_old = get_user_by("ID", $user->ID);
-            if($usr_new->user_email != $usr_old->user_email 
-                && (!current_user_can("create_users"))) {
-                $usr_new->user_email = $usr_old->user_email;
-                // TODO add error message
+        public static function prevent_email_change($errors, $update, $usr_new) {   
+
+            $usr_old = wp_get_current_user();
+            $usr_meta = get_user_meta($usr_old->ID);
+
+            Logger::write_log("INFO", "New email: " . $_POST["email"]);
+            
+            if(isset($_POST["email"])
+                && isset($usr_meta["auth_source"]) 
+                && strtolower($usr_meta["auth_source"][0]) == "aad"
+                && $_POST["email"] != $usr_old->user_email) {
+
+                // Prevent update
+                $errors->add("email_update_error" ,__("Updating your email address is currently not allowed"));
+                return;
             }
         }
 
