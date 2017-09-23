@@ -3,7 +3,7 @@
      *  Plugin Name: Wordpress + Office 365 login
      *  Plugin URI: https://www.wpo365.com/downloads/wordpress-office-365-login/
      *  Github URI: https://github.com/wpo365/wpo365-login
-     *  Description: Wordpress + Office 365 login allows Micrsoft O365 users to seemlessly and securely log on to your corporate Wordpress intranet. The plugin will create a Wordpress user for each corporate user when logged on to Office 365 and thus avoiding the default Wordpress login screen: No username or password required.
+     *  Description: Wordpress + Office 365 login allows Microsoft O365 users to seemlessly and securely log on to your corporate Wordpress intranet. The plugin will create a Wordpress user for each corporate user when logged on to Office 365 and thus avoiding the default Wordpress login screen: No username or password required.
      *  Version: 1.0
      *  Author: info@wpo365.com
      *  Author URI: https://wpo365.com

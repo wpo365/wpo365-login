@@ -20,7 +20,7 @@
         // TYPICAL -> Change these values as you need/desire
         "opt_name"             => $opt_name,
         // This is where your data is stored in the database and also becomes your global variable name.
-        "display_name"         => "Azure AD Auth. for Wordpress",
+        "display_name"         => "Wordpress + Office 365 - login",
         // Name that appears at the top of your panel
         "display_version"      => "1.0",
         // Version that appears at the top of your panel
@@ -194,7 +194,7 @@
 
     // -> START Basic Fields
     Redux::setSection($opt_name, array(
-        "title"  => __("Azure AD Configuration", "wpo-365-options"),
+        "title"  => __("Azure AD", "wpo-365-options"),
         "id"     => "aad_config",
         "desc"   => __("Configuration Section for relevant Azure Active Directory and Azure Application Registration settings", "wpo-365-options"),
         //"icon"   => "el el-home",
