@@ -1,1 +1,0 @@
-# see https://www.wpo365.com/how-to-install-wordpress-office-365-login-plugin/ 
