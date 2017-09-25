@@ -71,3 +71,12 @@ The WordPress + Office 365 login plugin uses OpenID Connect and Azure Active Dir
 
 = 1.0 =
 * Initial version submitted to Wordpress.org
+
+= 1.1 =
+* Added Wordpress compliant readme.txt
+
+= 1.2 =
+* Removed wpo365-redirect.php (and calling wp-load.php)
+* Fixed debug level logging, now writing most of the logs when debug mode checked
+* Added option to manage pages to blacklist from session validation
+* Updated readme.txt

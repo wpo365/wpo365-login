@@ -42,7 +42,7 @@
             }
 
             // Save the user's ID in a session var
-            Logger::write_log("INFO", "found user with ID " . $wp_usr->ID);
+            Logger::write_log("DEBUG", "found user with ID " . $wp_usr->ID);
             $_SESSION["WPO365_WP_USR_ID"] = $wp_usr->ID;
             $_SESSION["WPO365_EXPIRY"] = time() + intval($GLOBALS["wpo365_options"]["session_duration"]);
 
@@ -91,15 +91,15 @@
                 $wp_usr = wp_get_current_user();
                 $usr_meta = get_user_meta($wp_usr->ID);
                 if(!isset($usr_meta["auth_source"])) {
-                    Logger::write_log("INFO", "Checking whether user is O365 user -> NO");
+                    Logger::write_log("DEBUG", "Checking whether user is O365 user -> NO");
                     return false; // user is not an O365 user
                 }
                 if(strtolower($usr_meta["auth_source"][0]) == "aad") {
-                    Logger::write_log("INFO", "Checking whether user is O365 user -> YES");
+                    Logger::write_log("DEBUG", "Checking whether user is O365 user -> YES");
                     return true; // user is an O365 user
                 }
             }
-            Logger::write_log("INFO", "Checking whether user is O365 user -> Not logged on");
+            Logger::write_log("DEBUG", "Checking whether user is O365 user -> Not logged on");
             return NULL; // user is not logged on TODO implement customer error handling
         }
 
@@ -129,8 +129,6 @@
             $usr_old = wp_get_current_user();
             $usr_meta = get_user_meta($usr_old->ID);
 
-            Logger::write_log("DEBUG", "New email: " . $_POST["email"]);
-            
             if(isset($_POST["email"])
                 && isset($usr_meta["auth_source"]) 
                 && strtolower($usr_meta["auth_source"][0]) == "aad"

@@ -24,19 +24,17 @@
          */
         public static function validate_current_session() {
 
-            Logger::write_log("DEBUG", "Validating session for page " . strtolower(basename($_SERVER['PHP_SELF'])));
-            Logger::write_log("DEBUG", "Session: ");
-            Logger::write_log("DEBUG", $_SESSION);
-            Logger::write_log("DEBUG", "Cookie: ");
-            Logger::write_log("DEBUG", $_COOKIE);
-
+            // Verify whether new tokens are received and if so process them
+            Auth::handle_redirect();
+            
+            Logger::write_log("INFO", "Validating session for page " . strtolower(basename($_SERVER['PHP_SELF'])));
+            
             // Is the current page blacklisted and if yes cancel validation
             // In a future version the blacklist could be saved as an option
-            if(strtolower(basename($_SERVER['PHP_SELF'])) == "wpo365-redirect.php"
-               || strtolower(basename($_SERVER['PHP_SELF'])) == "wp-login.php"
-               || strtolower(basename($_SERVER['PHP_SELF'])) == "wp-cron.php"
-               || strtolower(basename($_SERVER['PHP_SELF'])) == "admin-ajax.php") {
-                Logger::write_log("INFO", "Session validation cancelled for page " . strtolower(basename($_SERVER['PHP_SELF'])));
+            if(!empty($GLOBALS["wpo365_options"]["pages_blacklist"]) 
+                &&  strpos(strtolower($GLOBALS["wpo365_options"]["pages_blacklist"]), 
+                    strtolower(basename($_SERVER['PHP_SELF']))) !== false) {
+                Logger::write_log("INFO", "Cancelling session validation for page " . strtolower(basename($_SERVER['PHP_SELF'])));
                 return;
             }
 
@@ -45,7 +43,7 @@
                 || empty($GLOBALS["wpo365_options"]["application_id"])
                 || empty($GLOBALS["wpo365_options"]["redirect_url"])) 
                 && !is_admin()) {
-                Logger::write_log("INFO", "WPO365 not configured");
+                Logger::write_log("ERROR", "WPO365 not configured");
                 wp_redirect(wp_login_url());
                 exit();
             }
@@ -58,7 +56,7 @@
             // Refresh user's authentication when session not yet validated
             if(!isset($_SESSION["WPO365_WP_USR_ID"])
                || !isset($_SESSION["WPO365_EXPIRY"])) { // no session data found
-                Logger::write_log("INFO", "Session data invalid or incomplete found");
+                Logger::write_log("DEBUG", "Session data invalid or incomplete found");
                 Auth::get_openidconnect_and_oauth_token();
             }
 
@@ -70,7 +68,7 @@
             
             // Session validated so let's get things started
             $wp_usr = get_user_by("ID", $_SESSION["WPO365_WP_USR_ID"]);
-            Logger::write_log("INFO", "User " . $wp_usr->ID . " successfully authenticated");
+            Logger::write_log("DEBUG", "User " . $wp_usr->ID . " successfully authenticated");
             
             if(!is_user_logged_in()) {
                 wp_set_auth_cookie($wp_usr->ID, true);
@@ -109,7 +107,7 @@
             $authorizeUrl = "https://login.microsoftonline.com/" . $GLOBALS["wpo365_options"]["tenant_id"] . "/oauth2/authorize?" . http_build_query($params, "", "&");
 
             Logger::write_log("INFO", "Getting fresh id and authorization tokens");
-            Logger::write_log("INFO", "Authorization URL: " . $authorizeUrl);
+            Logger::write_log("DEBUG", "Authorization URL: " . $authorizeUrl);
 
             // Redirect to Microsoft Authorization Endpoint
             wp_redirect($authorizeUrl);
@@ -128,7 +126,7 @@
          */
         public static function process_id_token() {
 
-            Logger::write_log("INFO", "Processing an new id token");
+            Logger::write_log("DEBUG", "Processing an new id token");
 
             // Check whether an id_token is found in the posted payload
             if(!isset($_POST["id_token"])) {
@@ -169,7 +167,7 @@
          */
         public static function destroy_session() {
             
-                Logger::write_log("INFO", "Destroying session " . strtolower(basename($_SERVER['PHP_SELF'])));
+                Logger::write_log("DEBUG", "Destroying session " . strtolower(basename($_SERVER['PHP_SELF'])));
                 
                 // destroy wpo session adn cookies
                 session_unset();
@@ -199,14 +197,14 @@
         * @since   1.0
         * @return  void
         */
-        public static function handle_redirect() {
+        private static function handle_redirect() {
             
             Logger::write_log("DEBUG", "Handling redirect from Microsoft");
 
             // Test if a state property is returned and stop if not
             if(!isset($_POST["state"]) || !isset($_POST["id_token"])) {
-                Logger::write_log("ERROR", "No state found which is suspect");
-                Auth::goodbye();
+                Logger::write_log("DEBUG", "No state or id_token found so cancelling redirect handling");
+                return; // Do nothing -> Session validation should decide what to do next
             }
         
             $id_token = Auth::process_id_token();
@@ -248,7 +246,7 @@
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_URL, $ms_keys_url);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-            Logger::write_log("INFO", "Getting current public keys from MSFT");
+            Logger::write_log("DEBUG", "Getting current public keys from MSFT");
             $result = curl_exec($curl); // result holds the keys
             if(!empty(curl_error($curl))) {
                 // TODO handle error
@@ -305,7 +303,7 @@
             parse_str($query_string, $out);
             
             if(isset($out["redirect_to"])) {
-                Logger::write_log("INFO", "Redirect URL found and parsed: " . $out["redirect_to"]);
+                Logger::write_log("DEBUG", "Redirect URL found and parsed: " . $out["redirect_to"]);
                 return $out["redirect_to"];
             }
 
@@ -323,7 +321,6 @@
         private static function get_site_path() {
             $url = get_site_url();
             $segments = explode("/", $url);
-            Logger::write_log("DEBUG", $segments);
             $result = "";
             for($i = 3; $i < count($segments); $i++) {
                 $result .= "/" . $segments[$i];

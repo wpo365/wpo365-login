@@ -260,6 +260,17 @@
                 )
             ),
             array(
+                "id"       => "pages_blacklist",
+                "type"     => "textarea",
+                "title"    => __("Pages Blacklist", "wpo-365-options"),
+                "desc"     => __("Semi colon separated list of page file names", "wpo-365-options"),
+                //"subtitle" => __("Example subtitle.", "wpo-365-options"),
+                "hint"     => array(
+                    "content" => "Page file names listed here will be excluded from session validation.",
+                ),
+                "default"     => "wpo365-redirect.php;wp-login.php;wp-cron.php;admin-ajax.php"
+            ),
+            array(
                 "id"       => "session_duration",
                 "type"     => "text",
                 "title"    => __("Duration of a session", "wpo-365-options"),
