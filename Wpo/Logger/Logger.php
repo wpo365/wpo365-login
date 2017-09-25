@@ -18,7 +18,7 @@
             // Don't log debug level if not explicitely requested
             if($level == "DEBUG" 
                && (!isset($GLOBALS["wpo365_options"]["debug_mode"]) 
-               || $GLOBALS["wpo365_options"]["debug_mode"] != 0)) {
+               || $GLOBALS["wpo365_options"]["debug_mode"] != 1)) {
                 return;
             }
             

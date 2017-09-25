@@ -8,7 +8,7 @@
 
     function wpo_register_required_plugins() {
         
-        \Wpo\Logger\Logger::write_log("INFO", "Registering required plugins");
+        \Wpo\Logger\Logger::write_log("DEBUG", "Registering required plugins");
         
         $plugins = array(
             array(
