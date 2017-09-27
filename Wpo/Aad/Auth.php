@@ -262,7 +262,7 @@
             return $jwt_decoder::decode(
                 $id_token, 
                 "-----BEGIN CERTIFICATE-----\r\n" . $key . "\r\n-----END CERTIFICATE-----",
-                [$header->alg]
+                array($header->alg)
             );
 
         }
