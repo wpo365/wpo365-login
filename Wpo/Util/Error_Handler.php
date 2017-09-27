@@ -2,6 +2,8 @@
 
     namespace Wpo\Util;
 
+    require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/Util/Helpers.php");
+
     // Prevent public access to this script
     defined( 'ABSPATH' ) or die();
 
@@ -15,25 +17,30 @@
          */
         public static function check_for_login_messages() {
 
-            // Don't log debug level if not explicitely requested
-            if(!isset($_SESSION["WPO365_LOGIN_ERR_MSGS"])
-                || empty($_SESSION["WPO365_LOGIN_ERR_MSGS"])
-                || !is_array($_SESSION["WPO365_LOGIN_ERR_MSGS"])) {
+            $messages_arr = NULL;
+
+            // Check to see whether there are any login messages
+            if(Helpers::get_cookie("WPO365_LOGIN_ERR_MSGS") !== false) {
+                
+                $messages_arr = explode(";", base64_decode($_COOKIE["WPO365_LOGIN_ERR_MSGS"]));
+
+            }
+            else {
 
                 return;
 
             }
 
-            // Get from the login messages container
+            // Get messages from the login messages container
             $result = "";
-            foreach($_SESSION["WPO365_LOGIN_ERR_MSGS"] as $msg) {
+            foreach($messages_arr as $msg) {
 
                 $result .= "<p class=\"message\">" . $msg . "</p><br />";
 
             }
 
             // Empty the login messages container
-            unset($_SESSION["WPO365_LOGIN_ERR_MSGS"]);
+            Helpers::set_cookie("WPO365_LOGIN_ERR_MSGS", "", time() - 3600);
             
             // Return messages to display to hook
             return $result;
@@ -41,17 +48,25 @@
 
         public static function add_login_message($message) {
 
-            // Create login messages container if it does not exist
-            if(!isset($_SESSION["WPO365_LOGIN_ERR_MSGS"])
-                || empty($_SESSION["WPO365_LOGIN_ERR_MSGS"])
-                || !is_array($_SESSION["WPO365_LOGIN_ERR_MSGS"])) {
+            $messages_arr = NULL;
 
-                $_SESSION["WPO365_LOGIN_ERR_MSGS"] = array();
+            // Create login messages container if it does not exist
+            if(Helpers::get_cookie("WPO365_LOGIN_ERR_MSGS") !== false) {
                 
+                $messages_arr = explode(";", base64_decode($_COOKIE["WPO365_LOGIN_ERR_MSGS"]));
+
+            }
+            else {
+
+                $messages_arr = array();
+
             }
 
-            // Add message to login messages container
-            $_SESSION["WPO365_LOGIN_ERR_MSGS"][] = $message;
+            // Add new message to array of existing messages
+            $messages_arr[] = $message;
+
+            // Update cookie
+            Helpers::set_cookie("WPO365_LOGIN_ERR_MSGS", base64_encode(implode(";", $messages_arr)), time() + 120);
         }
     }
 

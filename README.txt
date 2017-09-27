@@ -87,3 +87,6 @@ The WordPress + Office 365 login plugin uses OpenID Connect and Azure Active Dir
 * Improved flow and created hook to handle redirect (for future oauth tokens)
 * Renamed namespace Logger to Util
 * Obfuscated user's id in session cookie
+
+= 1.4 =
+* Remove usage of PHP session on each page load to optimize for PHP caching

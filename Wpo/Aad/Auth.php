@@ -4,14 +4,17 @@
     // prevent public access to this script
     defined( 'ABSPATH' ) or die();
 
-    require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/User/User_Manager.php");
     require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/Util/Logger.php");
+    require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/Util/Helpers.php");
     require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/Util/Error_Handler.php");
+    require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/User/User_Manager.php");
     require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Firebase/JWT/JWT.php");
 
-    use \Wpo\User\User_Manager;
-    use \Wpo\Util\Error_Handler;
+    
     use \Wpo\Util\Logger;
+    use \Wpo\Util\Helpers;
+    use \Wpo\Util\Error_Handler;
+    use \Wpo\User\User_Manager;
     use \Firebase\JWT\JWT;
     
     class Auth {
@@ -29,9 +32,7 @@
             Logger::write_log("DEBUG", "Destroying session " . strtolower(basename($_SERVER['PHP_SELF'])));
             
             // destroy wpo session and cookies
-            session_unset();
-            unset($_COOKIE["WPO365_REFRESH_TOKEN"]);
-            setcookie("WPO365_REFRESH_TOKEN", "", -3600, Auth::get_site_path()); // expire in the past
+            Helpers::set_cookie("WPO365_AUTH", "", time() -3600);
 
         }
 
@@ -82,7 +83,6 @@
                 
                 Logger::write_log("ERROR", "WPO365 not configured");
                 Error_Handler::add_login_message(__("Wordpress + Office 365 login not configured yet. Please contact your System Administrator."));
-                
                 Auth::goodbye();
 
             }
@@ -95,22 +95,14 @@
             }
 
             // Refresh user's authentication when session not yet validated
-            if(!isset($_SESSION["WPO365_EXPIRY"])) { // no session data found
+            if(Helpers::get_cookie("WPO365_AUTH") == false) { // no session data found
 
+                wp_logout(); // logout but don't redirect to the login page
                 Logger::write_log("DEBUG", "Session data invalid or incomplete found");
                 Auth::get_openidconnect_and_oauth_token();
 
             }
 
-            // Refresh user's authentication when previously validated session has expired
-            if(!is_array($_SESSION["WPO365_EXPIRY"])
-                || intval($_SESSION["WPO365_EXPIRY"][0]) <= time()) { // session expired
-
-                wp_logout(); // logout but don't redirect to the login page
-                Auth::get_openidconnect_and_oauth_token();
-
-            }
-            
             $wp_usr_id = User_Manager::get_user_id();
             
             // Session validated but something must have gone wrong because user cannot be retrieved
@@ -146,7 +138,7 @@
         public static function get_openidconnect_and_oauth_token() {
 
             $nonce = uniqid();
-            $_SESSION["WPO365_NONCE"] = $nonce;
+            Helpers::set_cookie("WPO365_NONCE", $nonce, time() + 120);
 
             $params = array(
                 "client_id" => $GLOBALS["wpo365_options"]["application_id"],
@@ -182,7 +174,9 @@
             $id_token = Auth::decode_id_token();
         
             // Handle if token could not be processed or nonce is invalid
-            if($id_token === false || $id_token->nonce != $_SESSION["WPO365_NONCE"]) {
+            if($id_token === false 
+                || Helpers::get_cookie("WPO365_NONCE") === false 
+                || $id_token->nonce != $_COOKIE["WPO365_NONCE"]) {
                 
                 Error_Handler::add_login_message(__("Your login might be tampered with. Please contact your System Administrator."));
                 Logger::write_log("ERROR", "id token could not be processed and user will be redirected to default Wordpress login");
@@ -191,8 +185,8 @@
 
             }
         
-            // Delete the nonce session variable
-            unset($_SESSION["WPO365_NONCE"]);
+            // Delete the nonce cookie variable
+            Helpers::set_cookie("WPO365_NONCE", "", time() -3600);
                     
             // Ensure user with the information found in the id_token
             $usr = User_Manager::ensure_user($id_token);

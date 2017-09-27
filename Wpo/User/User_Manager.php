@@ -7,9 +7,13 @@
 
     // Require dependencies
     require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/Util/Logger.php");
+    require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/Util/Helpers.php");
+    require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/Aad/Auth.php");
     require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/User/User.php");
 
     use \Wpo\Util\Logger;
+    use \Wpo\Util\Helpers;
+    use \Wpo\Aad\Auth;
     
     class User_Manager {
 
@@ -49,7 +53,7 @@
 
             // Obfuscated user's wp id
             $obfuscated_user_id = $expiry + $wp_usr->ID;
-            $_SESSION["WPO365_EXPIRY"] = array($expiry, $obfuscated_user_id); 
+            Helpers::set_cookie("WPO365_AUTH", "$expiry;$obfuscated_user_id", $expiry);
 
             // Finally log the user on
             wp_set_auth_cookie($wp_usr->ID, true);
@@ -170,16 +174,21 @@
          */
         public static function get_user_id() {
             
-            if(!isset($_SESSION["WPO365_EXPIRY"]) 
-                || !is_array($_SESSION["WPO365_EXPIRY"])
-                || sizeof($_SESSION["WPO365_EXPIRY"]) != 2) {
+            if(Helpers::get_cookie("WPO365_AUTH") === false) {
+
                 return false;
+
             }
 
-            $expiry = intval($_SESSION["WPO365_EXPIRY"][0]);
-            $obfuscated_user_id = intval($_SESSION["WPO365_EXPIRY"][1]);
+            $result = explode(";", $_COOKIE["WPO365_AUTH"]);
 
-            return $obfuscated_user_id - $expiry;
+            if(sizeof($result) != 2) {
+
+                return false;
+
+            }
+
+            return intval($result[1]) - intval($result[0]); // obfuscated id - expiry
         }
 
     }
