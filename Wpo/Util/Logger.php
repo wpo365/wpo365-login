@@ -1,6 +1,6 @@
 <?php
 
-    namespace Wpo\Logger;
+    namespace Wpo\Util;
 
     // Prevent public access to this script
     defined( 'ABSPATH' ) or die();
@@ -19,15 +19,21 @@
             if($level == "DEBUG" 
                && (!isset($GLOBALS["wpo365_options"]["debug_mode"]) 
                || $GLOBALS["wpo365_options"]["debug_mode"] != 1)) {
+
                 return;
+
             }
             
             if (is_array($log) || is_object($log)) {
+
                 // Print array data
                 error_log("$level: ". print_r($log, true));
+
             } else {
+
                 // Or just the message passed in as a string
                 error_log("$level: " . $log);
+                
             }
         }
     }

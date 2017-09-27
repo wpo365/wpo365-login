@@ -5,14 +5,48 @@
     defined( 'ABSPATH' ) or die();
 
     require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/User/User_Manager.php");
-    require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/Logger/Logger.php");
+    require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/Util/Logger.php");
+    require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/Util/Error_Handler.php");
     require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Firebase/JWT/JWT.php");
 
     use \Wpo\User\User_Manager;
-    use \Wpo\Logger\Logger;
+    use \Wpo\Util\Error_Handler;
+    use \Wpo\Util\Logger;
     use \Firebase\JWT\JWT;
     
     class Auth {
+
+        /**
+         * Destroys any session and authenication artefacts and hooked up with wp_logout and should
+         * therefore never be called directly to avoid endless loops etc.
+         *
+         * @since   1.0
+         *
+         * @return  void 
+         */
+        public static function destroy_session() {
+            
+            Logger::write_log("DEBUG", "Destroying session " . strtolower(basename($_SERVER['PHP_SELF'])));
+            
+            // destroy wpo session and cookies
+            session_unset();
+            unset($_COOKIE["WPO365_REFRESH_TOKEN"]);
+            setcookie("WPO365_REFRESH_TOKEN", "", -3600, Auth::get_site_path()); // expire in the past
+
+        }
+
+        /**
+         * Same as destroy_session but with redirect to login page
+         *
+         * @since   1.0
+         * @return  void
+         */
+        public static function goodbye() {
+
+            wp_logout(); // This will also call destroy_session because of wp_logout hook
+            auth_redirect();
+
+        }
 
         /**
          * Validates each incoming request to see whether user prior to request
@@ -25,17 +59,19 @@
         public static function validate_current_session() {
 
             // Verify whether new tokens are received and if so process them
-            Auth::handle_redirect();
+            do_action("wpo365_handle_redirect");
             
-            Logger::write_log("INFO", "Validating session for page " . strtolower(basename($_SERVER['PHP_SELF'])));
+            Logger::write_log("DEBUG", "Validating session for page " . strtolower(basename($_SERVER['PHP_SELF'])));
             
             // Is the current page blacklisted and if yes cancel validation
-            // In a future version the blacklist could be saved as an option
             if(!empty($GLOBALS["wpo365_options"]["pages_blacklist"]) 
                 &&  strpos(strtolower($GLOBALS["wpo365_options"]["pages_blacklist"]), 
                     strtolower(basename($_SERVER['PHP_SELF']))) !== false) {
-                Logger::write_log("INFO", "Cancelling session validation for page " . strtolower(basename($_SERVER['PHP_SELF'])));
+
+                Logger::write_log("DEBUG", "Cancelling session validation for page " . strtolower(basename($_SERVER['PHP_SELF'])));
+
                 return;
+
             }
 
             // Don't allow access to the front end when WPO365 is unconfigured
@@ -43,35 +79,55 @@
                 || empty($GLOBALS["wpo365_options"]["application_id"])
                 || empty($GLOBALS["wpo365_options"]["redirect_url"])) 
                 && !is_admin()) {
+                
                 Logger::write_log("ERROR", "WPO365 not configured");
-                wp_redirect(wp_login_url());
-                exit();
+                Error_Handler::add_login_message(__("Wordpress + Office 365 login not configured yet. Please contact your System Administrator."));
+                
+                Auth::goodbye();
+
             }
 
             // Don't continue validation if user is already logged in and is a Wordpress-only user
             if(User_Manager::user_is_o365_user() === false) {
+
                 return;
+
             }
 
             // Refresh user's authentication when session not yet validated
-            if(!isset($_SESSION["WPO365_WP_USR_ID"])
-               || !isset($_SESSION["WPO365_EXPIRY"])) { // no session data found
+            if(!isset($_SESSION["WPO365_EXPIRY"])) { // no session data found
+
                 Logger::write_log("DEBUG", "Session data invalid or incomplete found");
                 Auth::get_openidconnect_and_oauth_token();
+
             }
 
             // Refresh user's authentication when previously validated session has expired
-            if(intval($_SESSION["WPO365_EXPIRY"]) <= time()) { // tokens expired
-                Auth::destroy_session();
+            if(!is_array($_SESSION["WPO365_EXPIRY"])
+                || intval($_SESSION["WPO365_EXPIRY"][0]) <= time()) { // session expired
+
+                wp_logout(); // logout but don't redirect to the login page
                 Auth::get_openidconnect_and_oauth_token();
+
             }
             
-            // Session validated so let's get things started
-            $wp_usr = get_user_by("ID", $_SESSION["WPO365_WP_USR_ID"]);
+            $wp_usr_id = User_Manager::get_user_id();
+            
+            // Session validated but something must have gone wrong because user cannot be retrieved
+            if($wp_usr_id === false) {
+
+                Error_Handler::add_login_message(__("Could not retrieve your login. Please contact your System Administrator."));
+                Auth::goodbye();
+            }
+
+            $wp_usr = get_user_by("ID", $wp_usr_id);
+
             Logger::write_log("DEBUG", "User " . $wp_usr->ID . " successfully authenticated");
             
             if(!is_user_logged_in()) {
+
                 wp_set_auth_cookie($wp_usr->ID, true);
+
             }
 
         }
@@ -105,13 +161,56 @@
             );
 
             $authorizeUrl = "https://login.microsoftonline.com/" . $GLOBALS["wpo365_options"]["tenant_id"] . "/oauth2/authorize?" . http_build_query($params, "", "&");
-
-            Logger::write_log("INFO", "Getting fresh id and authorization tokens");
-            Logger::write_log("DEBUG", "Authorization URL: " . $authorizeUrl);
+            Logger::write_log("DEBUG", "Getting fresh id and authorization tokens: " . $authorizeUrl);
 
             // Redirect to Microsoft Authorization Endpoint
             wp_redirect($authorizeUrl);
             exit(); // exit after redirect
+        }
+
+        /**
+         * Handles redirect from Microsofts authorization service and tries to detect
+         * any wrong doing and if detected redirects wrong-doer to Wordpress login instead
+         *
+         * @since   1.0
+         * @return  void
+         */
+         public static function process_openidconnect_token() {
+            
+            Logger::write_log("DEBUG", "Processing incoming OpenID Connect id_token");
+        
+            $id_token = Auth::decode_id_token();
+        
+            // Handle if token could not be processed or nonce is invalid
+            if($id_token === false || $id_token->nonce != $_SESSION["WPO365_NONCE"]) {
+                
+                Error_Handler::add_login_message(__("Your login might be tampered with. Please contact your System Administrator."));
+                Logger::write_log("ERROR", "id token could not be processed and user will be redirected to default Wordpress login");
+
+                Auth::goodbye();
+
+            }
+        
+            // Delete the nonce session variable
+            unset($_SESSION["WPO365_NONCE"]);
+                    
+            // Ensure user with the information found in the id_token
+            $usr = User_Manager::ensure_user($id_token);
+            
+            // Handle if user could not be processed
+            if($usr === false) {
+
+                Error_Handler::add_login_message(__("Could not retrieve your login. Please contact your System Administrator."));
+                Logger::write_log("ERROR", "Could not get or create Wordpress user");
+
+                Auth::goodbye();
+            }
+
+            // User could log on and everything seems OK so let's restore his state
+            Logger::write_log("DEBUG", "Redirecting to " . $_POST["state"]);
+            wp_redirect($_POST["state"]);
+            exit(); // Always exit after a redirect
+
         }
 
         /**
@@ -124,7 +223,7 @@
          *
          * @return  void 
          */
-        public static function process_id_token() {
+        private static function decode_id_token() {
 
             Logger::write_log("DEBUG", "Processing an new id token");
 
@@ -141,14 +240,30 @@
             
             // Simple validation of the token's header
             if(!isset($header->kid) || !isset($header->alg)) {
+
                 Logger::write_log("ERROR", "JWT header is missing so stop here");
                 return false;
+
             }
 
-            // Discover and retrieve the tenant specific public keys
+            // Discover tenant specific public keys
             $keys = Auth::discover_ms_public_keys();
+            if($keys == NULL) {
+
+                Logger::write_log("ERROR", "Could not retrieve public keys from Microsoft");
+                return false;
+
+            }
+
+            // Find the tenant specific public key used to encode JWT token
             $key = Auth::retrieve_ms_public_key($header->kid, $keys);
-            
+            if($key == false) {
+
+                Logger::write_log("ERROR", "Could not find expected key in keys retrieved from Microsoft");
+                return false;
+
+            }
+
             // Decode and return the id_token
             return $jwt_decoder::decode(
                 $id_token, 
@@ -159,82 +274,6 @@
         }
 
         /**
-         * Destroys any session and authenication artefacts 
-         *
-         * @since   1.0
-         *
-         * @return  void 
-         */
-        public static function destroy_session() {
-            
-                Logger::write_log("DEBUG", "Destroying session " . strtolower(basename($_SERVER['PHP_SELF'])));
-                
-                // destroy wpo session adn cookies
-                session_unset();
-                unset($_COOKIE["WPO365_REFRESH_TOKEN"]);
-                setcookie("WPO365_REFRESH_TOKEN", "", -3600, Auth::get_site_path()); // expire in the past
-            
-                // destroy wordpress session and cookies
-                wp_clear_auth_cookie();
-                wp_destroy_current_session();  
-        }
-
-        /**
-         * Same as destroy_session but with redirect to login page
-         *
-         * @since   1.0
-         * @return  void
-         */
-        public static function goodbye() {
-             Auth::destroy_session();
-             auth_redirect();
-        }
-
-        /**
-        * Handles redirect from Microsofts authorization service and tries to detect
-        * any wrong doing and if detected redirects wrong-doer to Wordpress login instead
-        *
-        * @since   1.0
-        * @return  void
-        */
-        private static function handle_redirect() {
-            
-            Logger::write_log("DEBUG", "Handling redirect from Microsoft");
-
-            // Test if a state property is returned and stop if not
-            if(!isset($_POST["state"]) || !isset($_POST["id_token"])) {
-                Logger::write_log("DEBUG", "No state or id_token found so cancelling redirect handling");
-                return; // Do nothing -> Session validation should decide what to do next
-            }
-        
-            $id_token = Auth::process_id_token();
-        
-            // Handle if token could not be processed or nonce is invalid
-            if($id_token === false || $id_token->nonce != $_SESSION["WPO365_NONCE"]) {
-                Logger::write_log("ERROR", "id token could not be processed and user will be redirected to default Wordpress login");
-                Auth::goodbye();
-            }
-        
-            // Delete the nonce session variable
-            unset($_SESSION["WPO365_NONCE"]);
-                    
-            // Ensure user with the information found in the id_token
-            $usr = User_Manager::ensure_user($id_token);
-            
-            // Handle if user could not be processed
-            if($usr === false) {
-                Logger::write_log("ERROR", "Could not get or create Wordpress user");
-                Auth::goodbye();
-            }
-
-            // User could log on and everything seems OK so let's restore his state
-            Logger::write_log("INFO", "Redirecting to " . $_POST["state"]);
-            wp_redirect($_POST["state"]);
-        
-            exit(); // Always exit after a redirect
-        }
-
-        /**
          * Discovers the public keys Microsoft used to encode the id_token
          *
          * @since   1.0
@@ -242,6 +281,7 @@
          * @return  void 
          */
         private static function discover_ms_public_keys() {
+
             $ms_keys_url = "https://login.microsoftonline.com/common/discovery/keys";
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_URL, $ms_keys_url);
@@ -249,9 +289,11 @@
             Logger::write_log("DEBUG", "Getting current public keys from MSFT");
             $result = curl_exec($curl); // result holds the keys
             if(!empty(curl_error($curl))) {
+                
                 // TODO handle error
                 Logger::write_log("ERROR", "error occured whilst getting a token: " . curl_error($curl));
-                exit();
+                return NULL;
+
             }
             
             curl_close($curl);

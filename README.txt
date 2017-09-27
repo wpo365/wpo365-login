@@ -80,3 +80,10 @@ The WordPress + Office 365 login plugin uses OpenID Connect and Azure Active Dir
 * Fixed debug level logging, now writing most of the logs when debug mode checked
 * Added option to manage pages to blacklist from session validation
 * Updated readme.txt
+
+= 1.3 =
+* Added redux settings for preventing users changing email and/or password
+* Improved error handling with error messages shown on default wp login page
+* Improved flow and created hook to handle redirect (for future oauth tokens)
+* Renamed namespace Logger to Util
+* Obfuscated user's id in session cookie

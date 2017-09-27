@@ -286,6 +286,31 @@
     ));
 
     Redux::setSection($opt_name, array(
+        "title"  => __("User Management", "wpo-365-options"),
+        "id"     => "usrmgmt_config",
+        "desc"   => __("Configuration Section for user management related settings", "wpo-365-options"),
+        //"icon"   => "el el-home",
+        "fields" => array(
+            array(
+                "id"       => "block_email_change",
+                "type"     => "checkbox",
+                "title"    => __("User cannot change email address"),
+                "subtitle" => __("", "wpo-365-options"),
+                "desc"     => __("Intercepts a user trying to change his or her email address and reverts that action", "wpo-365-options"),
+                "default"  => "1",
+            ),
+            array(
+                "id"       => "block_password_change",
+                "type"     => "checkbox",
+                "title"    => __("User cannot change password"),
+                "subtitle" => __("", "wpo-365-options"),
+                "desc"     => __("Prevents a user who is not an administrator from changing his or her password", "wpo-365-options"),
+                "default"  => "1",
+            )
+        )
+    ));
+
+    Redux::setSection($opt_name, array(
         "title"  => __("Miscellaneaous", "wpo-365-options"),
         "id"     => "misc_config",
         "desc"   => __("Configuration Section for miscellaneous settings", "wpo-365-options"),

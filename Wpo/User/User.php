@@ -70,14 +70,17 @@
 		 * @return User  	A new User Object created from the id_token
 		 */
         public static function user_from_id_token($id_token) {
-            $usr = new User();
+
+			$usr = new User();
+			
             $usr->first_name = $id_token->given_name;
             $usr->last_name = $id_token->family_name;
             $usr->full_name = $id_token->name;
             $usr->email = $id_token->upn;
             $usr->upn = $id_token->upn;
             $usr->name = $id_token->unique_name;
-            return $usr;
+			return $usr;
+			
         }
 
     }
