@@ -60,15 +60,5 @@
         }
         
     });
-
-    // Now hook into our own actions
-    add_action("wpo365_handle_redirect", function() {
-
-        // Handle incoming OpenID Connect id_token
-        if(isset($_POST["state"]) && isset($_POST["id_token"])) {
-            \Wpo\Aad\Auth::process_openidconnect_token();
-        }
-        
-    });
     
 ?>

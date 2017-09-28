@@ -59,8 +59,10 @@
          */
         public static function validate_current_session() {
 
-            // Verify whether new tokens are received and if so process them
-            do_action("wpo365_handle_redirect");
+            // Verify whether new (id_tokens) tokens are received and if so process them
+            if(isset($_POST["state"]) && isset($_POST["id_token"])) {
+                \Wpo\Aad\Auth::process_openidconnect_token();
+            }
             
             Logger::write_log("DEBUG", "Validating session for page " . strtolower(basename($_SERVER['PHP_SELF'])));
             
@@ -170,14 +172,14 @@
          public static function process_openidconnect_token() {
             
             Logger::write_log("DEBUG", "Processing incoming OpenID Connect id_token");
-        
+
             $id_token = Auth::decode_id_token();
         
             // Handle if token could not be processed or nonce is invalid
             if($id_token === false 
                 || Helpers::get_cookie("WPO365_NONCE") === false 
                 || $id_token->nonce != $_COOKIE["WPO365_NONCE"]) {
-                
+
                 Error_Handler::add_login_message(__("Your login might be tampered with. Please contact your System Administrator."));
                 Logger::write_log("ERROR", "id token could not be processed and user will be redirected to default Wordpress login");
 
@@ -261,7 +263,7 @@
             // Decode and return the id_token
             return $jwt_decoder::decode(
                 $id_token, 
-                "-----BEGIN CERTIFICATE-----\r\n" . $key . "\r\n-----END CERTIFICATE-----",
+                "-----BEGIN CERTIFICATE-----\n" . wordwrap($key, 64, "\n", true). "\n-----END CERTIFICATE-----",
                 array($header->alg)
             );
 

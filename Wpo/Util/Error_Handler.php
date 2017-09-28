@@ -2,10 +2,12 @@
 
     namespace Wpo\Util;
 
-    require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/Util/Helpers.php");
-
     // Prevent public access to this script
     defined( 'ABSPATH' ) or die();
+
+    require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/Util/Logger.php");
+
+    use \Wpo\Util\Helpers;
 
     class Error_Handler {
 

@@ -6,9 +6,7 @@
     // Load dependencies
     require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/tgm-plugin-activation.php");
 
-    function wpo_register_required_plugins() {
-        
-        \Wpo\Util\Logger::write_log("DEBUG", "Registering required plugins");
+    add_action("tgmpa_register", function () {
         
         $plugins = array(
             array(
@@ -29,7 +27,6 @@
             "message"      => "",                      // Message to output right before the plugins table.
         );
         tgmpa($plugins, $config);
-    }
-    add_action("tgmpa_register", "wpo_register_required_plugins");
+    });
 
 ?>

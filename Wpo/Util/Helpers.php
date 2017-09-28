@@ -19,7 +19,7 @@
             $host = parse_url(get_option("siteurl"), PHP_URL_HOST);
             setcookie($name, $value, $expiry, $path, $host);
 
-            Logger::write_log("DEBUG", "Cookie  $name with value $value set for $path in $host");
+            Logger::write_log("DEBUG", "Cookie $name with value $value set for $path in $host (" . get_option("siteurl") . ")");
 
         }
 
