@@ -63,6 +63,13 @@
             if(isset($_POST["state"]) && isset($_POST["id_token"])) {
                 \Wpo\Aad\Auth::process_openidconnect_token();
             }
+
+            // Don't continue validation if user is already logged in and is a Wordpress-only user
+            if(User_Manager::user_is_o365_user() === false) {
+                
+                return;
+                
+            }
             
             Logger::write_log("DEBUG", "Validating session for page " . strtolower(basename($_SERVER['PHP_SELF'])));
             
@@ -86,13 +93,6 @@
                 Logger::write_log("ERROR", "WPO365 not configured");
                 Error_Handler::add_login_message(__("Wordpress + Office 365 login not configured yet. Please contact your System Administrator."));
                 Auth::goodbye();
-
-            }
-
-            // Don't continue validation if user is already logged in and is a Wordpress-only user
-            if(User_Manager::user_is_o365_user() === false) {
-
-                return;
 
             }
 

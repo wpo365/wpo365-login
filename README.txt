@@ -79,3 +79,6 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 * Fixed issue with array notation to support older PHP version
 * Fixed issue with generating certificate string
 * Removed redirect hook
+
+= 1.6 =
+* To resolve (issue 9)[https://github.com/wpo365/wpo365-login/issues/9] changed flow to earlier test if user is wordpress-only and cancel validation if so
