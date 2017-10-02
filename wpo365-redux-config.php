@@ -1,7 +1,7 @@
 <?php
 
     // Prevent public access to this script
-    defined( 'ABSPATH' ) or die();
+    defined( "ABSPATH" ) or die();
 
     if (!class_exists("Redux")) {
         return;
@@ -268,7 +268,7 @@
                 "hint"     => array(
                     "content" => "Page file names listed here will be excluded from session validation.",
                 ),
-                "default"     => "wpo365-redirect.php;wp-login.php;wp-cron.php;admin-ajax.php"
+                "default"     => "wp-login.php;wp-cron.php;admin-ajax.php"
             ),
             array(
                 "id"       => "session_duration",
@@ -306,6 +306,29 @@
                 "subtitle" => __("", "wpo-365-options"),
                 "desc"     => __("Prevents a user who is not an administrator from changing his or her password", "wpo-365-options"),
                 "default"  => "1",
+            ),
+            array(
+                "id"       => "auth_scenario",
+                "type"     => "select",
+                "title"    => __( "Authentication scenario", "wpo-365-options" ),
+                "subtitle" => __( "Select 'Intranet' to secure both Wordpress front- and backend and 'Internet' to secure only the backend with WPO365-login", "wpo-365-options" ),
+                //"desc"     => __( "This is the description field, again good for additional info.", "redux-framework-demo" ),
+                "options"  => array(
+                    "1" => "Intranet",
+                    "2" => "Internet"
+                ),
+                "default"  => "1"
+            ),
+            array(
+                "id"       => "new_usr_default_role",
+                "type"     => "text",
+                "title"    => __("Default role", "wpo-365-options"),
+                "desc"     => __("Role assigned when creating a new Wordpress user to match an Office 365 user"),
+                "default"  => "subscriber",
+                //"subtitle" => __("Example subtitle.", "wpo-365-options"),
+                //"hint"     => array(
+                //    "content" => "Here authentication responses can be sent and received by your app. It must exactly match one of the redirect_uris you registered in the portal, except it must be url encoded.",
+                //)
             )
         )
     ));

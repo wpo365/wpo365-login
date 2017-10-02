@@ -42,7 +42,12 @@
 
             // Or create one if not found
             if($wp_usr === false) {
-                User_Manager::add_user($usr);                
+                $wp_usr = User_Manager::add_user($usr);
+            }
+
+            // Could not create user
+            if($wp_usr === false) {
+                return false;
             }
 
             // Save the user's ID in a session var
@@ -69,6 +74,12 @@
          * @return  WPUser
          */
         public static function add_user($usr) {
+
+            if(!isset($GLOBALS["wpo365_options"]["new_usr_default_role"])
+                || empty($GLOBALS["wpo365_options"]["new_usr_default_role"])) {
+                return false;
+            }
+
             $userdata = array(
                 "user_login" => $usr->upn,
                 "user_pass" => uniqid(),
@@ -78,16 +89,16 @@
                 "first_name" => $usr->first_name,
                 "last_name" => $usr->last_name,
                 "last_name" => $usr->last_name,
-                "role" => "subscriber"
+                "role" => strtolower($GLOBALS["wpo365_options"]["new_usr_default_role"])
             );
 
             // Insert in Wordpress DB
-            $wp_usr = wp_insert_user($userdata);
-
+            $wp_usr_id = wp_insert_user($userdata);
+            
             // Add an extra meta information that this user is in fact a user created by WPO365
-            add_user_meta($wp_usr, "auth_source", "AAD", true);
+            add_user_meta($wp_usr_id, "auth_source", "AAD", true);
 
-            return $wp_usr;
+            return get_user_by("ID", $wp_usr_id);
         }
 
         /**

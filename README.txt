@@ -4,23 +4,26 @@ Donate link: https://www.wpo365.com
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.8.1
-Stable tag: 1.6
+Stable tag: 1.7
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 == Description ==
 
-WordPress + Office 365 login allows Microsoft O365 users to seemlessly and securely log on to your corporate WordPress intranet: No username or password required!
+WordPress + Office 365 login allows Microsoft O365 users to seemlessly and securely log on to your corporate WordPress intranet: No username or password required. Why you need this, you may wonder. Because this way you can ensure that your corporate content such as news, documents etc. that is normally classified as "Internal" or maybe even "Confidential" is not available to just any pair of curious unauthenticated eyes!
 
 = Plugin Features =
 
-- Automatically log on users that have successfully authenticated with Azure Active Directory / Office 365
-- Create a new WordPress user for each Office 365 user (and match both users by email address)
-- Allow for both WordPress-only and Office 365 users to log on to your corporate intranet
-- Prevent Office 365 users to change their email address
-- Prevent Office 365 users to request a new password
-- Refresh authentication when its expired (by default after one hour)
+- As a Wordpress Administrator you can choose between two scenarios: 'Intranet' or 'Internet'.
+- When the 'Intranet' scenario is selected, our plugin will secure both Wordpress front- and backend and will try to verify whether the user can successfully authenticate him or herself with Microsoft Azure Active Directory. If this is the case the user is granted access to page initially requested or else the user is redirected to the default Wordpress login page.
+- On the other hand, when the 'Internet' scenario is selected and the user requests an ordinary (front-end) Wordpress post or page, authentication is omitted. Only when the user requests a page from the backend e.g. /wp-admin the plugin will try and authenticate the user using Azure Active Directory.
+- In both scenarios, users will be automatically logged on after they have successfully authenticated with Azure Active Directory / Office 365
+- And in case the user does so for the very first time, the plugin will create a corresponding new WordPress user (and match both worlds by the user's unique email address)
+- Still, when a user would navigate to the default Wordpress login page, he or she can still log on using a Wordpress-only account. This maybe desirable for System Administrators to log on independently from any subsystem such as Azure Active Directory.
+- To keep things save, the plugin will by default prevent Office 365 users to change their email address.
+- The plugin will also prevent Office 365 users to request a new password.
+- After a certain time - by default 1 hour - the plugin will try and refresh the initial authentication.
 
 = Prerequisites =
 
@@ -82,3 +85,8 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 = 1.6 =
 * To resolve (issue 9)[https://github.com/wpo365/wpo365-login/issues/9] changed flow to earlier test if user is wordpress-only and cancel validation if so
+
+= 1.7 =
+* Added option to configure default role for any new Wordpress user (representing the Office 365 / Azure AD user) created by the plugin (default role is Subscriber)
+* Added option to configure preferred WPO365-login scenario and allowed by default for two scenarios: 'Intranet' to secure both Wordpress front- and backend and 'Internet' to secure only the backend
+* Ensured that upon adding a new Wordpress user this user is returned correctly to main the session validation flow.

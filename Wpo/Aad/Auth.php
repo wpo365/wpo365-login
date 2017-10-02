@@ -70,6 +70,17 @@
                 return;
                 
             }
+
+            // If selected scenario is 'Internet' (2) then only continue with validation when access to backend is requested
+            if(isset($GLOBALS["wpo365_options"]["auth_scenario"])
+                && !empty($GLOBALS["wpo365_options"]["auth_scenario"])
+                && $GLOBALS["wpo365_options"]["auth_scenario"] == "2"
+                && !is_admin()) {
+
+                    Logger::write_log("DEBUG", "Cancelling session validation for page " . strtolower(basename($_SERVER['PHP_SELF'])) . " because selected scenario is 'Internet'");
+                    return;
+
+            }
             
             Logger::write_log("DEBUG", "Validating session for page " . strtolower(basename($_SERVER['PHP_SELF'])));
             
@@ -196,7 +207,7 @@
             // Handle if user could not be processed
             if($usr === false) {
 
-                Error_Handler::add_login_message(__("Could not retrieve your login. Please contact your System Administrator."));
+                Error_Handler::add_login_message(__("Could not create or retrieve your login. Please contact your System Administrator."));
                 Logger::write_log("ERROR", "Could not get or create Wordpress user");
 
                 Auth::goodbye();
