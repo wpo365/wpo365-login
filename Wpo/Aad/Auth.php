@@ -295,7 +295,7 @@
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             Logger::write_log("DEBUG", "Getting current public keys from MSFT");
             $result = curl_exec($curl); // result holds the keys
-            if(!empty(curl_error($curl))) {
+            if(curl_error($curl)) {
                 
                 // TODO handle error
                 Logger::write_log("ERROR", "error occured whilst getting a token: " . curl_error($curl));

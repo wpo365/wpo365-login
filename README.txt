@@ -4,7 +4,7 @@ Donate link: https://www.wpo365.com
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.8.1
-Stable tag: 1.7
+Stable tag: 1.8
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -90,3 +90,6 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 * Added option to configure default role for any new Wordpress user (representing the Office 365 / Azure AD user) created by the plugin (default role is Subscriber)
 * Added option to configure preferred WPO365-login scenario and allowed by default for two scenarios: 'Intranet' to secure both Wordpress front- and backend and 'Internet' to secure only the backend
 * Ensured that upon adding a new Wordpress user this user is returned correctly to main the session validation flow.
+
+= 1.8 =
+* To resolve (issue 11 - Can't use function return value in write context)[https://github.com/wpo365/wpo365-login/issues/11]
