@@ -347,6 +347,14 @@
                 "desc"     => __("Enable debug mode so the plugin will output verbose information to the Wordpress debug.log file", "wpo-365-options"),
                 "default"  => "0",
             ),
+            array(
+                "id"       => "skip_host_verification",
+                "type"     => "checkbox",
+                "title"    => __("Skip SSL host verification"),
+                "subtitle" => __("", "wpo-365-options"),
+                "desc"     => __("Enable SSL host verification to improve overall security and you are sure the required server-side dependencies for CURL to verify an SSL host are installed", "wpo-365-options"),
+                "default"  => "1",
+            ),
         )
     ));
 

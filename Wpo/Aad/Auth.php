@@ -291,8 +291,20 @@
 
             $ms_keys_url = "https://login.microsoftonline.com/common/discovery/keys";
             $curl = curl_init();
+
             curl_setopt($curl, CURLOPT_URL, $ms_keys_url);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+
+            if(isset($GLOBALS["wpo365_options"]["skip_host_verification"])
+                && $GLOBALS["wpo365_options"]["skip_host_verification"] == 1) {
+
+                    Logger::write_log("DEBUG", "Skipping SSL peer and host verification");
+
+                    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0); 
+                    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0); 
+
+            }
+
             Logger::write_log("DEBUG", "Getting current public keys from MSFT");
             $result = curl_exec($curl); // result holds the keys
             if(curl_error($curl)) {
