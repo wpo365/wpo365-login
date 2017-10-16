@@ -240,6 +240,16 @@
                 )
             ),
             array(
+                "id"       => "application_secret",
+                "type"     => "text",
+                "title"    => __("Application Secret", "wpo-365-options"),
+                "desc"     => __("The (AAD) Application secret you created as part of the Azure Active Directory configuration", "wpo-365-options"),
+                //"subtitle" => __("Example subtitle.", "wpo-365-options"),
+                //"hint"     => array(
+                //    "content" => "You can find this in the Azure Portal. Click Azure Active Directory, click App Registrations, choose the application and locate the Application ID URI on the application page.",
+                //)
+            ),
+            array(
                 "id"       => "scope",
                 "type"     => "text",
                 "title"    => __("Scope", "wpo-365-options"),
@@ -274,8 +284,19 @@
                 "id"       => "session_duration",
                 "type"     => "text",
                 "title"    => __("Duration of a session", "wpo-365-options"),
-                "desc"     => __("Duration in seconds until a user's session expires and the user needs to re-authenticate"),
+                "desc"     => __("Duration in seconds until a user's session expires and the user needs to re-authenticate (default one week)"),
                 "default"  => "3600",
+                //"subtitle" => __("Example subtitle.", "wpo-365-options"),
+                //"hint"     => array(
+                //    "content" => "Here authentication responses can be sent and received by your app. It must exactly match one of the redirect_uris you registered in the portal, except it must be url encoded.",
+                //)
+            ),
+            array(
+                "id"       => "refresh_duration",
+                "type"     => "text",
+                "title"    => __("Duration before refreshing tokens", "wpo-365-options"),
+                "desc"     => __("Duration in seconds until a user's refresh token expires and a new refresh token is required (default one week)"),
+                "default"  => "604800",
                 //"subtitle" => __("Example subtitle.", "wpo-365-options"),
                 //"hint"     => array(
                 //    "content" => "Here authentication responses can be sent and received by your app. It must exactly match one of the redirect_uris you registered in the portal, except it must be url encoded.",

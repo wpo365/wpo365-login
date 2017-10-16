@@ -50,6 +50,16 @@
                 return false;
             }
 
+            // Mark the user as AAD in case he/she isn't (because manually added but still using AAD to authenticate)
+            $usr_meta = get_user_meta($wp_usr->ID);
+            if(!isset($usr_meta["auth_source"])
+                || strtolower($usr_meta["auth_source"][0]) != "aad") {
+
+                // Add an extra meta information that this user is in fact a user created by WPO365
+                add_user_meta($wp_usr->ID, "auth_source", "AAD", true);
+
+            }
+
             // Save the user's ID in a session var
             Logger::write_log("DEBUG", "found user with ID " . $wp_usr->ID);
             
@@ -62,6 +72,7 @@
 
             // Finally log the user on
             wp_set_auth_cookie($wp_usr->ID, true);
+
             return true;
 
         }
@@ -102,24 +113,33 @@
         }
 
         /**
-         * Creates a new Wordpress user
+         * Checks whether current user is O365 user
          *
          * @since   1.0
-         * @return  void
+         * @return  NULL if not logged in or true if O365 user or false if not
          */
         public static function user_is_o365_user() {
+
             if(is_user_logged_in()) {
+
                 $wp_usr = wp_get_current_user();
                 $usr_meta = get_user_meta($wp_usr->ID);
+                
                 if(!isset($usr_meta["auth_source"])) {
+
                     Logger::write_log("DEBUG", "Checking whether user is O365 user -> NO");
                     return false; // user is not an O365 user
+
                 }
+
                 if(strtolower($usr_meta["auth_source"][0]) == "aad") {
+
                     Logger::write_log("DEBUG", "Checking whether user is O365 user -> YES");
                     return true; // user is an O365 user
+
                 }
             }
+
             Logger::write_log("DEBUG", "Checking whether user is O365 user -> Not logged on");
             return NULL; // user is not logged on TODO implement customer error handling
         }
@@ -153,7 +173,7 @@
          * @param   WPUser  usr_new => Updated user
          * @return  void
          */
-        public static function prevent_email_change($errors, $update, $usr_new) {
+        public static function prevent_email_change($errors, $update = NULL, $usr_new = NULL) {
 
             // Don't block as per global settings configuration
             if(isset($GLOBALS["wpo365_options"]["block_email_change"]) 
