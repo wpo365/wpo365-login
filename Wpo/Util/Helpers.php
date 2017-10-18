@@ -16,10 +16,9 @@
         public static function set_cookie($name, $value, $expiry) {
             
             $path = parse_url(get_option("siteurl"), PHP_URL_PATH);
-            $host = parse_url(get_option("siteurl"), PHP_URL_HOST);
-            setcookie($name, $value, $expiry, $path, $host);
+            $setcookie_result = setcookie($name, $value, $expiry, $path, COOKIE_DOMAIN);
 
-            Logger::write_log("DEBUG", "Cookie $name with value $value set for $path in $host (" . get_option("siteurl") . ")");
+            Logger::write_log("DEBUG", "Setting cookie $name with value $value set for $path (" . get_option("siteurl") . ")" . ($setcookie_result === true ? " OK " : " NOK "));
 
         }
 
