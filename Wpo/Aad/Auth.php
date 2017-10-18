@@ -253,6 +253,8 @@
 
             }
 
+            Logger::write_log("DEBUG", "Algorithm found " . $header->alg);
+
             // Discover tenant specific public keys
             $keys = Auth::discover_ms_public_keys();
             if($keys == NULL) {
@@ -271,12 +273,23 @@
 
             }
 
-            // Decode and return the id_token
-            return $jwt_decoder::decode(
+            $pem_string = "-----BEGIN CERTIFICATE-----\n" . chunk_split($key, 64, "\n") . "-----END CERTIFICATE-----\n";
+
+            // Decode athe id_token
+            $decoded_token = $jwt_decoder::decode(
                 $id_token, 
-                "-----BEGIN CERTIFICATE-----\n" . wordwrap($key, 64, "\n", true). "\n-----END CERTIFICATE-----",
-                array($header->alg)
+                $pem_string,
+                array(strtoupper($header->alg))
             );
+
+            if(!$decoded_token) {
+
+                Logger::write_log("ERROR", "Failed to decode token " . substr($pem_string, 0, 35) . "..." . substr($pem_string, -35) . " using algorithm " . $header->alg);
+                return false;
+
+            }
+
+            return $decoded_token;
 
         }
 
