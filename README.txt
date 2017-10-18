@@ -4,7 +4,7 @@ Donate link: https://www.wpo365.com
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.8.1
-Stable tag: 1.10
+Stable tag: 1.11
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -102,3 +102,6 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 * Changed the way the PEM string is being put together from wordwrap to chunk_split
 * Changed the incoming algorithm to uppercase
 * Added additional logging in case id token decoding fails
+
+= 1.11 =
+* Added error check to see if the response from Microsoft contains an error and if yes show this error on the login page

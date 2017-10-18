@@ -59,6 +59,16 @@
          */
         public static function validate_current_session() {
 
+            // Check for error
+            if(isset($_POST["error"])) {
+            
+                $error_string = $_POST["error"] . isset($_POST["error_description"]) ? $_POST["error_description"] : "";
+                Logger::write_log("ERROR", $error_string);
+                Error_Handler::add_login_message($_POST["error"] . __(". Please contact your System Administrator."));
+                Auth::goodbye();
+            
+            }
+
             // Verify whether new (id_tokens) tokens are received and if so process them
             if(isset($_POST["state"]) && isset($_POST["id_token"])) {
                 \Wpo\Aad\Auth::process_openidconnect_token();
