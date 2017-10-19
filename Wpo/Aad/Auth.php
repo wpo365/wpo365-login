@@ -195,6 +195,18 @@
             Logger::write_log("DEBUG", "Processing incoming OpenID Connect id_token");
 
             $id_token = Auth::decode_id_token();
+
+            if(Helpers::get_cookie("WPO365_NONCE") !== false) {
+
+                Logger::write_log("DEBUG", "Found nonce cookie with value: " . Helpers::get_cookie("WPO365_NONCE"));
+
+            }
+            else {
+
+                Logger::write_log("DEBUG", "Nonce cookie is missing");
+
+            }
+            
         
             // Handle if token could not be processed or nonce is invalid
             if($id_token === false 

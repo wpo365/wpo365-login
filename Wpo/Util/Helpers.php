@@ -15,10 +15,14 @@
          */
         public static function set_cookie($name, $value, $expiry) {
             
-            $path = parse_url(get_option("siteurl"), PHP_URL_PATH);
-            $setcookie_result = setcookie($name, $value, $expiry, $path, COOKIE_DOMAIN);
+            setcookie($name, $value, $expiry, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN);
+            setcookie($name, $value, $expiry, ADMIN_COOKIE_PATH, COOKIE_DOMAIN);
+            setcookie($name, $value, $expiry, COOKIEPATH, COOKIE_DOMAIN);
+            if ( COOKIEPATH != SITECOOKIEPATH ) {
+                setcookie($name, $value, $expiry, SITECOOKIEPATH, COOKIE_DOMAIN);
+            }
 
-            Logger::write_log("DEBUG", "Setting cookie $name with value $value set for $path (" . get_option("siteurl") . ")" . ($setcookie_result === true ? " OK " : " NOK "));
+            Logger::write_log("DEBUG", "Setting cookie $name with value $value");
 
         }
 

@@ -4,7 +4,7 @@ Donate link: https://www.wpo365.com
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.8.1
-Stable tag: 1.12
+Stable tag: 1.13
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -108,3 +108,6 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 = 1.12 =
 * Removed setting the domain for a cookie as this caused an issue with Internet Explorer
+
+= 1.13 =
+* Setting cookies for all possible paths (similar to how wp cookies are being set)
