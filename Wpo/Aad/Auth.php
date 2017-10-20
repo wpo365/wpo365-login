@@ -59,6 +59,16 @@
          */
         public static function validate_current_session() {
 
+            // Check for error
+            if(isset($_POST["error"])) {
+            
+                $error_string = $_POST["error"] . isset($_POST["error_description"]) ? $_POST["error_description"] : "";
+                Logger::write_log("ERROR", $error_string);
+                Error_Handler::add_login_message($_POST["error"] . __(". Please contact your System Administrator."));
+                Auth::goodbye();
+            
+            }
+
             // Verify whether new (id_tokens) tokens are received and if so process them
             if(isset($_POST["state"]) && isset($_POST["id_token"])) {
                 \Wpo\Aad\Auth::process_openidconnect_token();
@@ -196,6 +206,18 @@
 
             // Decode the id_token
             $id_token = Auth::decode_id_token();
+
+            if(Helpers::get_cookie("WPO365_NONCE") !== false) {
+
+                Logger::write_log("DEBUG", "Found nonce cookie with value: " . Helpers::get_cookie("WPO365_NONCE"));
+
+            }
+            else {
+
+                Logger::write_log("DEBUG", "Nonce cookie is missing");
+
+            }
+            
         
             // Handle if token could not be processed or nonce is invalid
             if($id_token === false 
@@ -304,10 +326,20 @@
             curl_setopt($curl, CURLOPT_HTTPHEADER, array(
                 "Content-Type: application/x-www-form-urlencoded"
             ));
+
+            if(isset($GLOBALS["wpo365_options"]["skip_host_verification"])
+                && $GLOBALS["wpo365_options"]["skip_host_verification"] == 1) {
+
+                    Logger::write_log("DEBUG", "Skipping SSL peer and host verification");
+
+                    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0); 
+                    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0); 
+
+            }
         
             $result = curl_exec($curl); // result holds the tokens
         
-            if(!empty(curl_error($curl))) {
+            if(curl_error($curl)) {
 
                 Logger::write_log("DEBUG", "Error occured whilst getting an access token");
                 curl_close($curl);
@@ -404,6 +436,8 @@
 
             }
 
+            Logger::write_log("DEBUG", "Algorithm found " . $header->alg);
+
             // Discover tenant specific public keys
             $keys = Auth::discover_ms_public_keys();
             if($keys == NULL) {
@@ -422,12 +456,23 @@
 
             }
 
-            // Decode and return the id_token
-            return $jwt_decoder::decode(
+            $pem_string = "-----BEGIN CERTIFICATE-----\n" . chunk_split($key, 64, "\n") . "-----END CERTIFICATE-----\n";
+
+            // Decode athe id_token
+            $decoded_token = $jwt_decoder::decode(
                 $id_token, 
-                "-----BEGIN CERTIFICATE-----\n" . wordwrap($key, 64, "\n", true). "\n-----END CERTIFICATE-----",
-                array($header->alg)
+                $pem_string,
+                array(strtoupper($header->alg))
             );
+
+            if(!$decoded_token) {
+
+                Logger::write_log("ERROR", "Failed to decode token " . substr($pem_string, 0, 35) . "..." . substr($pem_string, -35) . " using algorithm " . $header->alg);
+                return false;
+
+            }
+
+            return $decoded_token;
 
         }
 
@@ -442,8 +487,20 @@
 
             $ms_keys_url = "https://login.microsoftonline.com/common/discovery/keys";
             $curl = curl_init();
+
             curl_setopt($curl, CURLOPT_URL, $ms_keys_url);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+
+            if(isset($GLOBALS["wpo365_options"]["skip_host_verification"])
+                && $GLOBALS["wpo365_options"]["skip_host_verification"] == 1) {
+
+                    Logger::write_log("DEBUG", "Skipping SSL peer and host verification");
+
+                    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0); 
+                    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0); 
+
+            }
+
             Logger::write_log("DEBUG", "Getting current public keys from MSFT");
             $result = curl_exec($curl); // result holds the keys
             if(curl_error($curl)) {
@@ -508,24 +565,6 @@
             }
 
             return get_site_url();
-        }
-
-        /**
-         * Gets the server relative url
-         *
-         * @since   1.0
-         *
-         * @param   string  url the user w
-         * @return  string  server relative url 
-         */
-        private static function get_site_path() {
-            $url = get_site_url();
-            $segments = explode("/", $url);
-            $result = "";
-            for($i = 3; $i < count($segments); $i++) {
-                $result .= "/" . $segments[$i];
-            }
-            return $result;
         }
 
         /**

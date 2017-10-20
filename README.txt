@@ -4,7 +4,11 @@ Donate link: https://www.wpo365.com
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.8.1
+<<<<<<< HEAD
 Stable tag: 2.0
+=======
+Stable tag: 1.13
+>>>>>>> master
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -93,5 +97,23 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 = 1.8 =
 * To resolve (issue 11 - Can't use function return value in write context)[https://github.com/wpo365/wpo365-login/issues/11]
+
+= 1.9 =
+* Resolve issue when empty user data is received from Azure Active Directory
+* Added option to work-around missing server-side dependencies for CURL to verify SSL host (lowers general security)
+
+= 1.10 =
+* Changed the way the PEM string is being put together from wordwrap to chunk_split
+* Changed the incoming algorithm to uppercase
+* Added additional logging in case id token decoding fails
+
+= 1.11 =
+* Added error check to see if the response from Microsoft contains an error and if yes show this error on the login page
+
+= 1.12 =
+* Removed setting the domain for a cookie as this caused an issue with Internet Explorer
+
+= 1.13 =
+* Setting cookies for all possible paths (similar to how wp cookies are being set)
 
 = 2.0 =
