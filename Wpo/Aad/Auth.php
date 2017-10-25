@@ -32,7 +32,16 @@
             Logger::write_log("DEBUG", "Destroying session " . strtolower(basename($_SERVER['PHP_SELF'])));
             
             // destroy wpo session and cookies
-            Helpers::set_cookie("WPO365_AUTH", "", time() -3600);
+            foreach ( $_COOKIE as $key => $val ) {
+
+                if( strpos( strtolower($key), 'wpo365' ) !== false 
+                    && $key != 'WPO365_REFRESH_TOKENS' ) {
+
+                        Helpers::set_cookie( $key, '', time() -3600);
+
+                }
+
+            }
 
         }
 
@@ -254,156 +263,6 @@
         }
 
         /**
-         * Gets an access token in exchange for an authorization token that was received prior when getting
-         * an OpenId Connect token
-         *
-         * @since   2.0
-         *
-         * @param   string  AAD secured resource for which the access token should give access
-         * @return  object  access token as PHP std object
-         * @todo    Implement support for refresh token
-         */
-        public static function get_access_token($resource) {
-            
-            // Check to see if a refresh code is available
-            $refresh_token = Auth::get_refresh_token_for_resource($resource);
-
-            // If not check to see if an authorization code is available
-            if($refresh_token === false 
-                && Helpers::get_cookie("WPO365_AAD_AUTH_CODE") === false) {
-
-                Logger::write_log("DEBUG", "Could not get access code because of missing authorization or refresh code");
-                return false;
-
-            }
-
-            // Test other dependencies
-            if(!isset($GLOBALS["wpo365_options"]["application_secret"])
-                || !isset($GLOBALS["wpo365_options"]["application_id"])) {
-                
-                Logger::write_log("DEBUG", "Missing prerequisites for getting an access code for " . $resource);
-                return false;
-
-            }
-
-            // Assemble appropriate params object for desired flow
-            $params = NULL;
-            if($refresh_token !== false) {
-
-                $params = array(
-                    "grant_type" => "refresh_token",
-                    "client_id" => $GLOBALS["wpo365_options"]["application_id"],
-                    "refresh_token" => $refresh_token,
-                    "resource" => $GLOBALS["wpo365_options"][$resource],
-                    "client_secret" => $GLOBALS["wpo365_options"]["application_secret"]
-                );
-
-            }
-            else {
-
-                $params = array(
-                    "grant_type" => "authorization_code",
-                    "client_id" => $GLOBALS["wpo365_options"]["application_id"],
-                    "code" => Helpers::get_cookie("WPO365_AAD_AUTH_CODE"),
-                    "resource" => $GLOBALS["wpo365_options"][$resource],
-                    "redirect_uri" => $GLOBALS["wpo365_options"]["redirect_url"],
-                    "client_secret" => $GLOBALS["wpo365_options"]["application_secret"]
-                );
-
-            }
-
-            $params_as_str = http_build_query($params, "", "&"); // Fix encoding of ampersand
-
-            Logger::write_log("DEBUG", "Params as String: " . $params_as_str);
-
-            $authorizeUrl = "https://login.microsoftonline.com/" . $GLOBALS["wpo365_options"]["tenant_id"] . "/oauth2/token";
-            
-            $curl = curl_init();
-            curl_setopt($curl, CURLOPT_POST, 1);
-            curl_setopt($curl, CURLOPT_URL, $authorizeUrl);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $params_as_str);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                "Content-Type: application/x-www-form-urlencoded"
-            ));
-
-            if(isset($GLOBALS["wpo365_options"]["skip_host_verification"])
-                && $GLOBALS["wpo365_options"]["skip_host_verification"] == 1) {
-
-                    Logger::write_log("DEBUG", "Skipping SSL peer and host verification");
-
-                    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0); 
-                    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0); 
-
-            }
-        
-            $result = curl_exec($curl); // result holds the tokens
-        
-            if(curl_error($curl)) {
-
-                Logger::write_log("DEBUG", "Error occured whilst getting an access token");
-                curl_close($curl);
-
-                return false;
-
-            }
-        
-            curl_close($curl);
-        
-            // Validate the access token and return it
-            $access_token_obj = json_decode($result);
-
-            $access_token_is_valid = Auth::validate_access_token($access_token_obj);
-
-            if($access_token_is_valid === false) {
-
-                return false;
-
-            }
-
-            // Save refresh token
-            Auth::set_refresh_token_for_resource($resource, $access_token_obj->refresh_token);
-
-            return $access_token_obj;
-        
-        }
-        
-        /**
-         * Helper to validate an oauth access token
-         *
-         * @since   2.0
-         *
-         * @param   object  access token as PHP std object
-         * @return  object  access token as PHP std object or false if not valid
-         * @todo    make by reference instead by value
-         */
-        private static function validate_access_token($access_token_obj) {
-            
-            if(isset($access_token_obj->error)) {
-
-                Logger::write_log("DEBUG", "Error occured when validating access token: " . $access_token_obj->error_description);
-                return false;
-
-            }
-        
-            if(empty($access_token_obj) 
-                || $access_token_obj === false
-                || !isset($access_token_obj->access_token) 
-                || !isset($access_token_obj->expires_in) 
-                || !isset($access_token_obj->refresh_token)
-                || !isset($access_token_obj->token_type)
-                || !isset($access_token_obj->resource)
-                || strtolower($access_token_obj->token_type) != "bearer" ) {
-        
-                Logger::write_log("DEBUG", "Access code could not be validated");
-                return false;
-            }
-        
-            return $access_token_obj;
-        
-        }
-
-        /**
          * Unraffles the incoming JWT id_token with the help of Firebase\JWT and the tenant specific public keys available from Microsoft.
          * 
          * NOTE The refresh token is not used because it cannot be used to authenticate a user (no id_token)
@@ -491,8 +350,9 @@
             curl_setopt($curl, CURLOPT_URL, $ms_keys_url);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
-            if(isset($GLOBALS["wpo365_options"]["skip_host_verification"])
-                && $GLOBALS["wpo365_options"]["skip_host_verification"] == 1) {
+            if( isset( $GLOBALS[ 'wpo365_options' ] )
+                && isset( $GLOBALS[ 'wpo365_options' ][ 'skip_host_verification' ])
+                && $GLOBALS[ 'wpo365_options' ][ 'skip_host_verification' ] == 1) {
 
                     Logger::write_log("DEBUG", "Skipping SSL peer and host verification");
 
@@ -566,123 +426,6 @@
 
             return get_site_url();
         }
-
-        /**
-         * Tries and find a refresh token for an AAD resource that is stored as follows:
-         * type1,resource1,token1;type2,resource2,token2
-         *
-         * @since   2.0
-         * 
-         * @param   string  $resource   Name for the resource key used to store that resource in the WPO365 options
-         * @return  refresh token as string or false if not found
-         */
-        private static function get_refresh_token_for_resource($resource) {
-            
-            $refresh_cookie = Helpers::get_cookie("WPO365_REFRESH_TOKENS");
-            if($refresh_cookie === false) {
-
-                return false;
-
-            }
-
-            Logger::write_log("DEBUG", "Refresh cookie found: $refresh_cookie");
-
-            $refresh_tokens = explode(";", $refresh_cookie);
-
-            $refresh_token = array_map(function($input) use ($resource) {
-
-                $result = explode(",", $input);
-                if(strtolower($result[0]) == strtolower($resource)) { // e.g. spo_home, msft_graph 
-
-                    return $result;
-
-                }
-
-            }, $refresh_tokens);
-
-            // Return the refresh token
-            if(sizeof($refresh_token) == 1
-                && sizeof($refresh_token[0])) {
-
-                return $refresh_token[0][1];
-
-            }
-
-            // Or else return false if the token was not found
-            Logger::write_log("DEBUG", "Refresh cookies found but appears to be empty \"" . $refresh_cookie . "\"");
-            return false;
-
-        }
-
-         /**
-         * Sets a refresh token in a cookie as follows: resource1,token1;resource2,token2
-         *
-         * @since   2.0
-         * 
-         * @param   string  $resource name   Name for the resource key as used to store that resource in the WPO365 options
-         * @return  refresh token as string or false if not found
-         */
-        private static function set_refresh_token_for_resource($resource, $refresh_token) {
-
-            // Check prerequisites
-            if(!isset($GLOBALS["wpo365_options"]["refresh_duration"])) {
-
-                return false;
-
-            }
-
-            // Before saving a new refresh token a previous one must be deleted
-            Auth::remove_refresh_token_for_resource($resource);
-
-            // Get cookie or else provide empty array for storage
-            $refresh_tokens = Helpers::get_cookie("WPO365_REFRESH_TOKENS")
-                ? explode(";", $refresh_cookie = Helpers::get_cookie("WPO365_REFRESH_TOKENS"))
-                : array();
-            
-            // Add new refresh token to the existing tokens
-            $refresh_tokens[] = $resource . "," . $refresh_token;
-            
-            Helpers::set_cookie("WPO365_REFRESH_TOKENS", implode(";", $refresh_tokens), time() + intval($GLOBALS["wpo365_options"]["refresh_duration"]));
-
-            return true;
-
-        }
-
-        /**
-         * Tries and removes all refresh tokens for give resource from the fresh token cookie
-         *
-         * @since   2.0
-         * 
-         * @param   string  $resource   Name for the resource key used to store that resource in the WPO365 options
-         */
-        private static function remove_refresh_token_for_resource($resource) {
-
-            Logger::write_log("DEBUG", "Requested removing of refresh tokens for resource: " . $resource);
-
-            $refresh_cookie = Helpers::get_cookie("WPO365_REFRESH_TOKENS");
-            if($refresh_cookie === false) {
-
-                return;
-
-            }
-
-            $refresh_tokens_old = explode(";", $refresh_cookie);
-
-            $refresh_token_new = array_map(function($input) use ($resource) {
-
-                $result = explode(",", $input);
-                if(strtolower($result[0]) != strtolower($resource)) { // e.g. spo_home, msft_graph 
-
-                    return implode(",", $result);
-
-                }
                 
-
-            }, $refresh_tokens_old);
-
-            Helpers::set_cookie("WPO365_REFRESH_TOKENS", implode(";", $refresh_token_new), time() + intval($GLOBALS["wpo365_options"]["refresh_duration"]));
-
-        }
-        
     }
 ?>
