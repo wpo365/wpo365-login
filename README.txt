@@ -29,16 +29,19 @@ WordPress + Office 365 login allows Microsoft O365 users to seemlessly and secur
 - The plugin will also prevent Office 365 users to request a new password.
 - After a certain time - by default 1 hour - the plugin will try and refresh the initial authentication.
 
+Also have a look at [this post](https://www.wpo365.com/wpo365-login-features-and-authentication-flow/) if you need help to decide whether or not our plugin can help you improve the user experience when user try to gain accessing to your corporate intranet or internet WordPress site.
+
 = Prerequisites =
 
 - We have tested our plugin with Wordpress 4.8.1 and PHP 5.5.0 and 5.6.25
 - You need to be (Office 365) Tenant Administrator to configure both Azure Active Directory and the plugin
 - [Redux Framework Plugin](https://de.wordpress.org/plugins/redux-framework/) to configure the Plugin’s option (a warning will be shown upon plugin activation)
 - You may want to consider further restrict access to the otherwise publicly available wp-content directory
+- A user's browser must support cookies
 
 = Support =
 
-We will go to great length trying to support you if the plugin doesn't work as expected. You can create new issues over at [Github](https://github.com/wpo365/wpo365-login/issues). We haven't been able to test our plugin in all endless possible Wordpress configurations and versions but we are keen to hear from you.
+We will go to great length trying to support you if the plugin doesn't work as expected. Go to our [Support Page](https://www.wpo365.com/how-to-get-support/) to get in touch with us. We haven't been able to test our plugin in all endless possible Wordpress configurations and versions so we are keen to hear from you and happy to learn!
 
 = Feedback =
 
