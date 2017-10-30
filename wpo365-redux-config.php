@@ -69,7 +69,7 @@
         // Force your panel to always open to a specific tab (by id)
         "page_icon"            => "icon-themes",
         // Icon displayed in the admin panel next to your menu_title
-        "page_slug"            => "_options",
+        "page_slug"            => "wpo365-options",
         // Page slug used to denote the panel
         "save_defaults"        => true,
         // On load save the defaults to DB before user clicks save or not
@@ -99,28 +99,41 @@
     );
 
     $args["admin_bar_links"][] = array(
-        "id"    => "wpo365-website",
-        "href"  => "https://www.wpo365.com/",
-        "title" => __("WPO365 Website", "wpo-365-options"),
+        "id"    => "wpo365-features",
+        "href"  => "https://www.wpo365.com/wpo365-login-features-and-authentication-flow/",
+        "title" => __("WPO365 Features", "wpo-365-options"),
     );
 
-    // SOCIAL ICONS -> Setup custom links in the footer for quick links in your panel footer icons.
-    /*
+    $args["admin_bar_links"][] = array(
+        "id"    => "wpo365-installation",
+        "href"  => "https://www.wpo365.com/how-to-install-wordpress-office-365-login-plugin/",
+        "title" => __("WPO365 Installation", "wpo-365-options"),
+    );
+
+    $args["admin_bar_links"][] = array(
+        "id"    => "wpo365-support",
+        "href"  => "https://www.wpo365.com/how-to-get-support/",
+        "title" => __("WPO365 Support", "wpo-365-options"),
+    );
+
     $args["share_icons"][] = array(
-        "url"   => "https://github.com/ReduxFramework/ReduxFramework",
+        "url"   => "https://twitter.com/WPO365",
+        "title" => "Follow us on Twitter",
+        "icon"  => "el el-twitter"
+    );
+    
+    $args["share_icons"][] = array(
+        "url"   => "https://github.com/wpo365/wpo365-login/",
         "title" => "Visit us on GitHub",
         "icon"  => "el el-github"
         //"img"   => "", // You can use icon OR img. IMG needs to be a full URL.
     );
+
+    /*
     $args["share_icons"][] = array(
         "url"   => "https://www.facebook.com/pages/Redux-Framework/243141545850368",
         "title" => "Like us on Facebook",
         "icon"  => "el el-facebook"
-    );
-    $args["share_icons"][] = array(
-        "url"   => "http://twitter.com/reduxframework",
-        "title" => "Follow us on Twitter",
-        "icon"  => "el el-twitter"
     );
     $args["share_icons"][] = array(
         "url"   => "http://www.linkedin.com/company/redux-framework",

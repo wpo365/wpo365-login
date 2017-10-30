@@ -19,6 +19,9 @@
     
     class Auth {
 
+        const USR_META_WPO365_AUTH = "WPO365_AUTH";
+        const USR_META_WPO365_AUTH_CODE = "WPO365_AUTH_CODE";
+
         /**
          * Destroys any session and authenication artefacts and hooked up with wp_logout and should
          * therefore never be called directly to avoid endless loops etc.
@@ -31,17 +34,7 @@
             
             Logger::write_log("DEBUG", "Destroying session " . strtolower(basename($_SERVER['PHP_SELF'])));
             
-            // destroy wpo session and cookies
-            foreach ( $_COOKIE as $key => $val ) {
-
-                if( strpos( strtolower($key), 'wpo365' ) !== false 
-                    && $key != 'WPO365_REFRESH_TOKENS' ) {
-
-                        Helpers::set_cookie( $key, '', time() -3600);
-
-                }
-
-            }
+            Auth::delete_user_meta( Auth::USR_META_WPO365_AUTH );
 
         }
 
@@ -68,7 +61,7 @@
          */
         public static function validate_current_session() {
 
-            // Check for error
+            // Check for error in data posted
             if(isset($_POST["error"])) {
             
                 $error_string = $_POST["error"] . isset($_POST["error_description"]) ? $_POST["error_description"] : "";
@@ -78,21 +71,16 @@
             
             }
 
-            // Verify whether new (id_tokens) tokens are received and if so process them
+            // Check for new (id_tokens) tokens in data posted
             if(isset($_POST["state"]) && isset($_POST["id_token"])) {
+
                 \Wpo\Aad\Auth::process_openidconnect_token();
+
             }
 
-            // Don't continue validation if user is already logged in and is a Wordpress-only user
-            if(User_Manager::user_is_o365_user() === false) {
-                
-                return;
-                
-            }
-
-            // If selected scenario is 'Internet' (2) then only continue with validation when access to backend is requested
-            if(isset($GLOBALS["wpo365_options"]["auth_scenario"])
-                && !empty($GLOBALS["wpo365_options"]["auth_scenario"])
+            // Check is scenario is "internet" and validation of current page can be skipped
+            if(isset($GLOBALS["wpo365_options"])
+                && isset($GLOBALS["wpo365_options"]["auth_scenario"])
                 && $GLOBALS["wpo365_options"]["auth_scenario"] == "2"
                 && !is_admin()) {
 
@@ -103,10 +91,11 @@
             
             Logger::write_log("DEBUG", "Validating session for page " . strtolower(basename($_SERVER['PHP_SELF'])));
             
-            // Is the current page blacklisted and if yes cancel validation
-            if(!empty($GLOBALS["wpo365_options"]["pages_blacklist"]) 
-                &&  strpos(strtolower($GLOBALS["wpo365_options"]["pages_blacklist"]), 
-                    strtolower(basename($_SERVER['PHP_SELF']))) !== false) {
+            // Check if current page is blacklisted and can be skipped
+            if(isset($GLOBALS["wpo365_options"])
+                && !empty($GLOBALS["wpo365_options"]["pages_blacklist"]) 
+                && strpos(strtolower($GLOBALS["wpo365_options"]["pages_blacklist"]), 
+                   strtolower(basename($_SERVER['PHP_SELF']))) !== false) {
 
                 Logger::write_log("DEBUG", "Cancelling session validation for page " . strtolower(basename($_SERVER['PHP_SELF'])));
 
@@ -114,8 +103,9 @@
 
             }
 
-            // Don't allow access to the front end when WPO365 is unconfigured
-            if((empty($GLOBALS["wpo365_options"]["tenant_id"])
+            // Check if WPO365 is unconfigured and if so don't allow access
+            if((!isset($GLOBALS["wpo365_options"])
+                || empty($GLOBALS["wpo365_options"]["tenant_id"])
                 || empty($GLOBALS["wpo365_options"]["application_id"])
                 || empty($GLOBALS["wpo365_options"]["redirect_url"])) 
                 && !is_admin()) {
@@ -126,35 +116,152 @@
 
             }
 
-            // Refresh user's authentication when session not yet validated
-            if(Helpers::get_cookie("WPO365_AUTH") == false) { // no session data found
+            $wpo_auth = Auth::get_unique_user_meta( Auth::USR_META_WPO365_AUTH );
+
+            // Check if Wordpress-only user that is already logged on
+            if( $wpo_auth === NULL ) {
+
+                Logger::write_log("DEBUG", "User is a Wordpress-only user so no authentication is required");
+                return;
+
+            }
+            
+            // Check if user either not logged or has login that is no longer valid
+            if( $wpo_auth === false
+                || Auth::check_user_meta_is_expired( Auth::USR_META_WPO365_AUTH, $wpo_auth ) ) { 
 
                 wp_logout(); // logout but don't redirect to the login page
-                Logger::write_log("DEBUG", "Session data invalid or incomplete found");
+                Logger::write_log("DEBUG", "User either not logged on or has login is not longer valid");
                 Auth::get_openidconnect_and_oauth_token();
-
             }
 
-            $wp_usr_id = User_Manager::get_user_id();
+            // Everything OK
+
+        }
+
+        /**
+         * Sets a user meta field in a safe way so that user is logged in and value
+         * is updated instead of added if already exist
+         *
+         * @since   2.0
+         *
+         * @param   string  $key as user meta key
+         * @param   string  $value as user meta value
+         * @return  bool    true if user meta was added or updated or else false
+         */
+        public static function set_unique_user_meta( $key, $value ) {
+
+            if( !is_user_logged_in() ) {
+                
+                Logger::write_log( 'DEBUG', 'Cannot look up user meta ' . $key . ' for user that is not logged' );
+                return false;
             
-            // Session validated but something must have gone wrong because user cannot be retrieved
-            if($wp_usr_id === false) {
-
-                Error_Handler::add_login_message(__("Could not retrieve your login. Please contact your System Administrator."));
-                Auth::goodbye();
             }
 
-            $wp_usr = get_user_by("ID", $wp_usr_id);
+            $wp_usr = wp_get_current_user();
+            $usr_meta = get_user_meta( $wp_usr->ID );
 
-            Logger::write_log("DEBUG", "User " . $wp_usr->ID . " successfully authenticated");
+            if( !isset( $usr_meta[ $key ] ) ) {
+                
+                add_user_meta( $wp_usr->ID, $key, $value, true );
+                
+                Logger::write_log( 'DEBUG', 'Set user meta for ' . $key );
+                return true;
             
-            if(!is_user_logged_in()) {
+            }
+            else {
+            
+                update_user_meta( $wp_usr->ID, $key, $value );
+                
+                Logger::write_log( 'DEBUG', 'Updated user meta for ' . $key );
+                return true;
+            
+            }
 
-                wp_set_auth_cookie($wp_usr->ID, true);
+        }
+
+        /**
+         * Deletes a user meta field in a safe way so that user is logged in
+         *
+         * @since   2.0
+         *
+         * @param   string  $key as user meta key
+         * @return  void if user meta was deleted successfully or false if something went wrong
+         */
+        public static function delete_user_meta( $key ) {
+
+            if( !is_user_logged_in() ) {
+                
+                Logger::write_log( 'DEBUG', 'Cannot look up user meta ' . $key . ' for user that is not logged' );
+                return false;
+            
+            }
+
+            $wp_usr = wp_get_current_user();
+
+            delete_user_meta( $wp_usr->ID, $key ); // Potentially the user is logged on as a Worp<
+            
+            Logger::write_log( 'DEBUG', 'Tried deleting user meta for ' . $key );
+        }
+
+        /**
+         * Returns user meta if found or else false
+         *
+         * @since   2.0
+         *
+         * @param   string  $key as user meta key
+         * @return  user meta as string if found or else NULL for a logged in user or false if user is not logged in
+         */
+        public static function get_unique_user_meta( $key ) {
+
+            if( !is_user_logged_in() ) {
+                
+                Logger::write_log( 'DEBUG', 'Cannot look up user meta ' . $key . ' for user that is not logged' );
+                return false;
+            
+            }
+                
+            $wp_usr = wp_get_current_user();
+            $usr_meta = get_user_meta( $wp_usr->ID );
+
+            if( !isset( $usr_meta[ $key ] )
+                || sizeof( $usr_meta[ $key ] ) != 1 ) {
+
+                    Logger::write_log( 'DEBUG', 'No user meta found for ' . $key );
+                    return NULL;
+                        
+            }
+
+            return $usr_meta[ $key ][0];
+
+        }
+
+        /**
+         * Verifies whether a user meta field that is formatted as "expiration,value"  
+         * is expired according to its expiration fragment and if expired will delete
+         * the user meta field
+         *
+         * @since   2.0
+         *
+         * @param   string  $key as user meta key
+         * @param   string  $value as user meta vaue formatted as "expiration,value"
+         * @return  true when expired or else false
+         */
+        public static function check_user_meta_is_expired( $key, $value ) {
+
+            $value_with_expiry  = explode( ',', $value );
+
+            if( sizeof( $value_with_expiry ) != 2
+                || intval( $value_with_expiry[0] ) < time() ) { 
+
+                Auth::delete_user_meta( $key );
+                Logger::write_log( 'DEBUG', 'Expired user meta deleted for ' . $key );
+
+                return true;
 
             }
 
-            do_action("wpo365_session_validated");
+            return false;
 
         }
 
@@ -205,14 +312,6 @@
             
             Logger::write_log("DEBUG", "Processing incoming OpenID Connect id_token");
 
-            // Store the Authorization Code for extensions that may need it to obtain access codes for AAD secured resources
-            if(isset($_POST["code"])) {
-                
-                Logger::write_log("DEBUG", "Code found: " . $_POST["code"]);
-                Helpers::set_cookie("WPO365_AAD_AUTH_CODE", $_POST["code"], time() + 120);
-
-            }
-
             // Decode the id_token
             $id_token = Auth::decode_id_token();
 
@@ -227,7 +326,6 @@
 
             }
             
-        
             // Handle if token could not be processed or nonce is invalid
             if($id_token === false 
                 || Helpers::get_cookie("WPO365_NONCE") === false 
@@ -254,6 +352,16 @@
 
                 Auth::goodbye();
             }
+
+            // Store the Authorization Code for extensions that may need it to obtain access codes for AAD secured resources
+            if(isset($_POST["code"])) {
+
+                Auth::set_unique_user_meta( Auth::USR_META_WPO365_AUTH_CODE, ''. (time() + 120) . ',' . $_POST["code"]);
+
+            }
+
+            // Allow other Wordpress extensions to get additional tokens e.g. for SharePoint Online or Microsoft Graph
+            do_action("wpo365_openid_token_processed");
 
             // User could log on and everything seems OK so let's restore his state
             Logger::write_log("DEBUG", "Redirecting to " . $_POST["state"]);

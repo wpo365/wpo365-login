@@ -50,8 +50,13 @@
                 return false;
             }
 
+            // Now log on the user
+            wp_set_auth_cookie($wp_usr->ID, true);  // Both log user on
+            wp_set_current_user($wp_usr->ID);       // And set current user
+
             // Mark the user as AAD in case he/she isn't (because manually added but still using AAD to authenticate)
             $usr_meta = get_user_meta($wp_usr->ID);
+            
             if(!isset($usr_meta["auth_source"])
                 || strtolower($usr_meta["auth_source"][0]) != "aad") {
 
@@ -68,10 +73,8 @@
 
             // Obfuscated user's wp id
             $obfuscated_user_id = $expiry + $wp_usr->ID;
-            Helpers::set_cookie("WPO365_AUTH", "$expiry;$obfuscated_user_id", $expiry);
-
-            // Finally log the user on
-            wp_set_auth_cookie($wp_usr->ID, true);
+            
+            Auth::set_unique_user_meta( Auth::USR_META_WPO365_AUTH, "$expiry,$obfuscated_user_id" );
 
             return true;
 
@@ -195,31 +198,6 @@
                 $errors->add("email_update_error" ,__("Updating your email address is currently not allowed"));
                 return;
             }
-        }
-
-        /**
-         * Retrieves the user's wp id stored in the expiry cookie
-         * 
-         * @since   1.3
-         * @return  mixed   false if no valid cookie found or else the user's wp id
-         */
-        public static function get_user_id() {
-            
-            if(Helpers::get_cookie("WPO365_AUTH") === false) {
-
-                return false;
-
-            }
-
-            $result = explode(";", $_COOKIE["WPO365_AUTH"]);
-
-            if(sizeof($result) != 2) {
-
-                return false;
-
-            }
-
-            return intval($result[1]) - intval($result[0]); // obfuscated id - expiry
         }
 
     }

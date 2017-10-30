@@ -117,3 +117,8 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 * Setting cookies for all possible paths (similar to how wp cookies are being set)
 
 = 2.0 =
+* Improved security by not storing user id in own cookie but instead use Wordpress user metadata
+* Added action hook "wpo365_openid_token_processed" that can be used by other Wordpress extensions to get additional access tokens for pulling data from Office 365 into Wordpress pages
+* Change options page name with page slug wpo365-options
+
+
