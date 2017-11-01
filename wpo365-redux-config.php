@@ -389,6 +389,14 @@
                 "desc"     => __("Enable SSL host verification to improve overall security and you are sure the required server-side dependencies for CURL to verify an SSL host are installed", "wpo-365-options"),
                 "default"  => "1",
             ),
+            array(
+                "id"       => "debug_log_id_token",
+                "type"     => "checkbox",
+                "title"    => __("Log id token"),
+                "subtitle" => __("", "wpo-365-options"),
+                "desc"     => __("When enabled the plugin will write the id token into the Wordpress log file when debug logging is enabled", "wpo-365-options"),
+                "default"  => "0",
+            ),
         )
     ));
 

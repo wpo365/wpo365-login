@@ -34,8 +34,24 @@
                 return false;
             }
 
+            if( isset( $GLOBALS["wpo365_options"] )
+                && isset( $GLOBALS["wpo365_options"]["debug_log_id_token"] )
+                && $GLOBALS["wpo365_options"]["debug_log_id_token"] == 1 ) {
+                
+                    Logger::write_log( 'DEBUG', 'ID token as received from Azure AD Open Connect' );
+                    Logger::write_log( 'DEBUG', $decoded_id_token );
+
+            }
+
             // Translate id_token in a Wpo\User\User object
             $usr = User::user_from_id_token($decoded_id_token);
+
+            if( $usr == NULL ) {
+
+                Logger::write_log( 'DEBUG', 'Could not retract UPN from id token' );
+                return false;
+                
+            }
 
             // Try find an existing user by email
             $wp_usr = get_user_by("email", $usr->email);

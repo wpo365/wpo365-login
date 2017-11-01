@@ -71,14 +71,22 @@
 		 */
         public static function user_from_id_token($id_token) {
 
+			$unique_name = isset( $id_token->upn ) ? $id_token->upn : ( isset( $id_token->unique_name ) ? $id_token->unique_name : "" );
+
+			if( strlen( $unique_name ) == 0 ) {
+
+				return NULL;
+
+			}
+
 			$usr = new User();
 			
             $usr->first_name = isset($id_token->given_name) ?  $id_token->given_name : "";
             $usr->last_name = isset($id_token->family_name) ? $id_token->family_name : "";
             $usr->full_name = isset($id_token->name) ? $id_token->name : "";
-            $usr->email = $id_token->upn;
-            $usr->upn = $id_token->upn;
-            $usr->name = $id_token->unique_name;
+            $usr->email = $unique_name;
+            $usr->upn = $unique_name;
+            $usr->name = $unique_name;
 			return $usr;
 			
         }
