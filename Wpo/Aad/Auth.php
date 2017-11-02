@@ -282,15 +282,14 @@
             Helpers::set_cookie("WPO365_NONCE", $nonce, time() + 120);
 
             $params = array(
-                "client_id" => $GLOBALS["wpo365_options"]["application_id"],
+                "client_id"     => $GLOBALS["wpo365_options"]["application_id"],
                 "response_type" => "id_token code",
-                "redirect_uri" => $GLOBALS["wpo365_options"]["redirect_url"],
+                "redirect_uri"  => $GLOBALS["wpo365_options"]["redirect_url"],
                 "response_mode" => "form_post",
-                "scope" => $GLOBALS["wpo365_options"]["scope"],
-                "resource" => $GLOBALS["wpo365_options"]["application_id"], // basically the app is asking permissiong to access itself and 
-                                                                            // this scenario is only supported when using applciation id instead of application id uri
-                "state" => (isset($_SERVER["HTTPS"]) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]",
-                "nonce" => $nonce
+                "scope"         => $GLOBALS["wpo365_options"]["scope"],
+                "resource"      => $GLOBALS["wpo365_options"]["aad_resource_uri"],
+                "state"         => (isset($_SERVER["HTTPS"]) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]",
+                "nonce"         => $nonce
             );
 
             $authorizeUrl = "https://login.microsoftonline.com/" . $GLOBALS["wpo365_options"]["tenant_id"] . "/oauth2/authorize?" . http_build_query($params, "", "&");

@@ -231,7 +231,7 @@
                 "hint"     => array(
                     "content" => "The {tenant} value in the path of the request can be used to control who can sign into the application. The allowed values are tenant identifiers, for example, 8eaef023-2b34-4da1-9baa-8bc8c9d6a490 or contoso.onmicrosoft.com or common for tenant-independent tokens",
                 )
-           ),
+            ),
             array(
                 "id"       => "application_id",
                 "type"     => "text",
@@ -243,6 +243,13 @@
                 )
            ),
            array(
+                "id"       => "aad_resource_uri",
+                "type"     => "text",
+                "title"    => __("Default resource ID", "wpo-365-options"),
+                "desc"     => __("The application will by default request access to Windows Azure Active Directory to sign in and read profile data if you leave this field unchanged", "wpo-365-options"),
+                "default"     => "00000002-0000-0000-c000-000000000000"
+            ),
+            array(
                 "id"       => "application_uri",
                 "type"     => "text",
                 "title"    => __("AAD Application ID URI", "wpo-365-options"),
