@@ -4,7 +4,7 @@ Donate link: https://www.wpo365.com
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.8.1
-Stable tag: 2.1
+Stable tag: 2.2
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -124,5 +124,6 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 * Plugin will check whether the id token received contains a valid unique name or upn
 * Improved logging that would allow an administrator to write the id token to the Wordpress debug log (should be used carefully as this contains sensitive data)
 
-
+= 2.2 =
+* Enhanced support for users with an MSA account (@live.com or @outlook.com) 
 
