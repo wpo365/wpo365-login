@@ -3,8 +3,8 @@ Contributors: wpo365
 Donate link: https://www.wpo365.com
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
-Tested up to: 4.8.1
-Stable tag: 2.3
+Tested up to: 4.9
+Stable tag: 2.4
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -130,4 +130,7 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 = 2.3 =
 * Changed the default resource for authorization from application id to Azure Active Directory allowing for consent being delegated plus added the option to change the default resource id configuratively
 
+= 2.4 =
+* Tested with Wordpress 4.9 RC 2
+* Added default value for scope
 

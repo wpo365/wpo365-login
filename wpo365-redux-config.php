@@ -253,7 +253,7 @@
                 "id"       => "application_uri",
                 "type"     => "text",
                 "title"    => __("AAD Application ID URI", "wpo-365-options"),
-                "desc"     => __("The Application ID URI assigned to your app when you registered it with Azure AD", "wpo-365-options"),
+                "desc"     => __("ONLY USED FOR ADVANCED INTEGRATION SCENARIOS - The Application ID URI assigned to your app when you registered it with Azure AD", "wpo-365-options"),
                 //"subtitle" => __("Example subtitle.", "wpo-365-options"),
                 "hint"     => array(
                     "content" => "You can find this in the Azure Portal. Click Azure Active Directory, click App Registrations, choose the application and locate the Application ID URI on the application page.",
@@ -263,7 +263,7 @@
                 "id"       => "application_secret",
                 "type"     => "text",
                 "title"    => __("Application Secret", "wpo-365-options"),
-                "desc"     => __("The (AAD) Application secret you created as part of the Azure Active Directory configuration", "wpo-365-options"),
+                "desc"     => __("ONLY USED FOR ADVANCED INTEGRATION SCENARIOS - The (AAD) Application secret you created as part of the Azure Active Directory configuration", "wpo-365-options"),
                 //"subtitle" => __("Example subtitle.", "wpo-365-options"),
                 //"hint"     => array(
                 //    "content" => "You can find this in the Azure Portal. Click Azure Active Directory, click App Registrations, choose the application and locate the Application ID URI on the application page.",
@@ -277,16 +277,17 @@
                 //"subtitle" => __("Example subtitle.", "wpo-365-options"),
                 "hint"     => array(
                     "content" => "For OpenID Connect, it must include the scope openid, which translates to the \"Sign you in\" permission in the consent UI. You may also include other scopes in this request for requesting consent.",
-                )
+                ),
+                "default"     => "openid"
            ),
             array(
                 "id"       => "redirect_url",
                 "type"     => "text",
                 "title"    => __("Redirect URI", "wpo-365-options"),
-                "desc"     => __("The redirect_uri of your app", "wpo-365-options"),
+                "desc"     => __("The redirect_uri of your app (for Wordpress default setup, append slash at the end e.g. https://yourintranet/ or https://yourintranet/wordpress/)", "wpo-365-options"),
                 //"subtitle" => __("Example subtitle.", "wpo-365-options"),
                 "hint"     => array(
-                    "content" => "Here authentication responses can be sent and received by your app. It must exactly match one of the redirect_uris you registered in the portal, except it must be url encoded.",
+                    "content" => "Here authentication responses can be sent and received by your app. It must exactly match one of the redirect_uris you registered in the portal.",
                 )
             ),
             array(
