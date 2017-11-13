@@ -111,6 +111,18 @@
     );
 
     $args["admin_bar_links"][] = array(
+        "id"    => "wpo365-troubleshooting",
+        "href"  => "https://www.wpo365.com/troubleshooting-the-wpo365-login-plugin/",
+        "title" => __("WPO365 Installation", "wpo-365-options"),
+    );
+
+    $args["admin_bar_links"][] = array(
+        "id"    => "wpo365-settings",
+        "href"  => "https://www.wpo365.com/wpo365-options-explained/",
+        "title" => __("WPO365 Installation", "wpo-365-options"),
+    );
+
+    $args["admin_bar_links"][] = array(
         "id"    => "wpo365-support",
         "href"  => "https://www.wpo365.com/how-to-get-support/",
         "title" => __("WPO365 Support", "wpo-365-options"),
@@ -305,7 +317,7 @@
                 "id"       => "session_duration",
                 "type"     => "text",
                 "title"    => __("Duration of a session", "wpo-365-options"),
-                "desc"     => __("Duration in seconds until a user's session expires and the user needs to re-authenticate (default one week)"),
+                "desc"     => __("Duration in seconds until a user's session expires and the user needs to re-authenticate (default one hour)"),
                 "default"  => "3600",
                 //"subtitle" => __("Example subtitle.", "wpo-365-options"),
                 //"hint"     => array(
