@@ -53,7 +53,7 @@
         public $last_name = null;
 
         /**
-		 * User's full (or display) name
+		 * User's full ( or display ) name
 		 *
 		 * @since 1.0.0
 		 *
@@ -69,11 +69,11 @@
 		 * @param string 	$id_token  token received from Azure Active Directory
 		 * @return User  	A new User Object created from the id_token
 		 */
-        public static function user_from_id_token($id_token) {
+        public static function user_from_id_token( $id_token ) {
 
 			// Try and detect an MSA account that has no upn but instead an email property
 			$email = isset( $id_token->email ) ? $id_token->email : 
-				( isset( $id_token->upn ) ? $id_token->upn : "" );
+				( isset( $id_token->upn ) ? $id_token->upn : '' );
 			
 			// Stop processing if email could not be found
 			if( strlen( $email ) == 0 ) {
@@ -89,9 +89,9 @@
 
 			$usr = new User();
 			
-            $usr->first_name = isset($id_token->given_name) ?  $id_token->given_name : "";
-            $usr->last_name = isset($id_token->family_name) ? $id_token->family_name : "";
-            $usr->full_name = isset($id_token->name) ? $id_token->name : "";
+            $usr->first_name = isset( $id_token->given_name ) ?  $id_token->given_name : '';
+            $usr->last_name = isset( $id_token->family_name ) ? $id_token->family_name : '';
+            $usr->full_name = isset( $id_token->name ) ? $id_token->name : '';
             $usr->email = $email;
             $usr->upn = $upn;
             $usr->name = $unique_name;

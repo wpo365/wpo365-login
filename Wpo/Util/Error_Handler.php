@@ -5,7 +5,7 @@
     // Prevent public access to this script
     defined( 'ABSPATH' ) or die();
 
-    require_once($GLOBALS["WPO365_PLUGIN_DIR"] . "/Wpo/Util/Logger.php");
+    require_once( $GLOBALS[ 'WPO365_PLUGIN_DIR' ] . '/Wpo/Util/Helpers.php' );
 
     use \Wpo\Util\Helpers;
 
@@ -22,9 +22,9 @@
             $messages_arr = NULL;
 
             // Check to see whether there are any login messages
-            if(Helpers::get_cookie("WPO365_LOGIN_ERR_MSGS") !== false) {
+            if( Helpers::get_cookie( 'WPO365_LOGIN_ERR_MSGS' ) !== false ) {
                 
-                $messages_arr = explode(";", base64_decode($_COOKIE["WPO365_LOGIN_ERR_MSGS"]));
+                $messages_arr = explode( ';', base64_decode( $_COOKIE[ 'WPO365_LOGIN_ERR_MSGS' ] ) );
 
             }
             else {
@@ -34,28 +34,28 @@
             }
 
             // Get messages from the login messages container
-            $result = "";
-            foreach($messages_arr as $msg) {
+            $result = '';
+            foreach( $messages_arr as $msg ) {
 
-                $result .= "<p class=\"message\">" . $msg . "</p><br />";
+                $result .= '<p class="message">' . $msg . '</p><br />';
 
             }
 
             // Empty the login messages container
-            Helpers::set_cookie("WPO365_LOGIN_ERR_MSGS", "", time() - 3600);
+            Helpers::set_cookie( 'WPO365_LOGIN_ERR_MSGS', '', time() - 3600 );
             
             // Return messages to display to hook
             return $result;
         }
 
-        public static function add_login_message($message) {
+        public static function add_login_message( $message ) {
 
             $messages_arr = NULL;
 
             // Create login messages container if it does not exist
-            if(Helpers::get_cookie("WPO365_LOGIN_ERR_MSGS") !== false) {
+            if( Helpers::get_cookie( 'WPO365_LOGIN_ERR_MSGS' ) !== false ) {
                 
-                $messages_arr = explode(";", base64_decode($_COOKIE["WPO365_LOGIN_ERR_MSGS"]));
+                $messages_arr = explode( ';', base64_decode( $_COOKIE[ 'WPO365_LOGIN_ERR_MSGS' ] ) );
 
             }
             else {
@@ -68,7 +68,7 @@
             $messages_arr[] = $message;
 
             // Update cookie
-            Helpers::set_cookie("WPO365_LOGIN_ERR_MSGS", base64_encode(implode(";", $messages_arr)), time() + 120);
+            Helpers::set_cookie( 'WPO365_LOGIN_ERR_MSGS', base64_encode( implode( ';', $messages_arr ) ), time() + 120 );
         }
     }
 
