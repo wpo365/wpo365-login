@@ -22,7 +22,7 @@
         // This is where your data is stored in the database and also becomes your global variable name.
         'display_name'         => 'Wordpress + Office 365 - login',
         // Name that appears at the top of your panel
-        'display_version'      => '1.0',
+        'display_version'      => '2.6',
         // Version that appears at the top of your panel
         'menu_type'            => 'menu',
         //Specify if the admin menu should appear or not. Options: menu or submenu (Under appearance only)
@@ -101,31 +101,31 @@
     $args['admin_bar_links'][] = array(
         'id'    => 'wpo365-features',
         'href'  => 'https://www.wpo365.com/wpo365-login-features-and-authentication-flow/',
-        'title' => __( 'WPO365 Features', 'wpo-365-options' ),
+        'title' => __( 'Features', 'wpo-365-options' ),
     );
 
     $args['admin_bar_links'][] = array(
         'id'    => 'wpo365-installation',
         'href'  => 'https://www.wpo365.com/how-to-install-wordpress-office-365-login-plugin/',
-        'title' => __( 'WPO365 Installation', 'wpo-365-options' ),
+        'title' => __( 'Installation', 'wpo-365-options' ),
     );
 
     $args['admin_bar_links'][] = array(
         'id'    => 'wpo365-troubleshooting',
         'href'  => 'https://www.wpo365.com/troubleshooting-the-wpo365-login-plugin/',
-        'title' => __( 'WPO365 Installation', 'wpo-365-options' ),
+        'title' => __( 'Troubleshooting', 'wpo-365-options' ),
     );
 
     $args['admin_bar_links'][] = array(
         'id'    => 'wpo365-settings',
         'href'  => 'https://www.wpo365.com/wpo365-options-explained/',
-        'title' => __( 'WPO365 Installation', 'wpo-365-options' ),
+        'title' => __( 'Options', 'wpo-365-options' ),
     );
 
     $args['admin_bar_links'][] = array(
         'id'    => 'wpo365-support',
         'href'  => 'https://www.wpo365.com/how-to-get-support/',
-        'title' => __( 'WPO365 Support', 'wpo-365-options' ),
+        'title' => __(  'Support', 'wpo-365-options' ),
     );
 
     $args['share_icons'][] = array(

@@ -27,11 +27,11 @@
             }
 
             // add to current request   
-            if( !isset( $_COOKIE[ $name ] ) ) {
+            /* if( !isset( $_COOKIE[ $name ] ) ) {
 
                 $_COOKIE[ $name ] = $value;
 
-            }
+            } */
 
             Logger::write_log( 'DEBUG', "Setting cookie $name with value $value" );
 
