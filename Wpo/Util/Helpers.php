@@ -246,6 +246,7 @@
 
             $plugin_version = $GLOBALS[ 'PLUGIN_VERSION' ];
             $event  = $event == NULL ? 'install' : $event;
+            $event .= '_login';
 
             $ga = "https://www.google-analytics.com/collect?v=1&tid=UA-5623266-11&aip=1&cid=bb923bfc-cae8-11e7-abc4-cec278b6b50a&t=event&ec=alm&ea=$event&el=wpo365-login_$plugin_version";
 
