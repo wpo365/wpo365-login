@@ -22,7 +22,7 @@
         // This is where your data is stored in the database and also becomes your global variable name.
         'display_name'         => 'Wordpress + Office 365 - login',
         // Name that appears at the top of your panel
-        'display_version'      => '2.7',
+        'display_version'      => '2.8',
         // Version that appears at the top of your panel
         'menu_type'            => 'menu',
         //Specify if the admin menu should appear or not. Options: menu or submenu (Under appearance only)

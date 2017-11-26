@@ -244,7 +244,7 @@
          */
         public static function track( $event = 'install' ) {
 
-            $plugin_version = $GLOBALS[ 'PLUGIN_VERSION' ];
+            $plugin_version = $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ];
             $event  = $event == NULL ? 'install' : $event;
             $event .= '_login';
 
@@ -285,15 +285,15 @@
             // Add new option if not yet existing
             if( false === $plugin_db_version ) {
 
-                add_site_option( 'wpo365-login-version', $GLOBALS[ 'PLUGIN_VERSION' ] );
+                add_site_option( 'wpo365-login-version', $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] );
 
             }
 
             // Compare plugin version with db version and track in case of update
-            if( $plugin_db_version != $GLOBALS[ 'PLUGIN_VERSION' ] ) {
+            if( $plugin_db_version != $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] ) {
 
                 Helpers::track( 'update' );
-                update_site_option( 'wpo365-login-version', $GLOBALS[ 'PLUGIN_VERSION' ] );
+                update_site_option( 'wpo365-login-version', $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] );
 
             }
 
