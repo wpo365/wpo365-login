@@ -486,7 +486,20 @@
             }
             
             curl_close( $curl );
-            return json_decode( $result );
+
+            $keys = json_decode( $result );
+
+            if( isset( $keys->keys ) ) {
+
+                return $keys->keys;
+
+            } 
+            else {
+
+                return $keys;                
+
+            }
+
         }
     
         /**
@@ -502,13 +515,13 @@
 
             foreach( $keys as $key ) {
 
-                if( $key[0]->kid == $kid ) {
+                if( $key->kid == $kid ) {
 
-                    if( is_array( $key[0]->x5c ) ) {
-                        return $key[0]->x5c[0];
+                    if( is_array( $key->x5c ) ) {
+                        return $key->x5c[0];
                     }
                     else {
-                        return $key[0]->x5c;
+                        return $key->x5c;
                     }
                 }
             }

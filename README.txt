@@ -4,7 +4,7 @@ Donate link: https://www.wpo365.com
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.9
-Stable tag: 2.8
+Stable tag: 2.9
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -148,4 +148,7 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 = 2.8 =
 * Fixed global plugin version that collides with multiple wpo365 plugins
+
+= 2.9 =
+* Fixed issue with keys retrieved from Microsoft that may prevent a user from logging in successfully
 
