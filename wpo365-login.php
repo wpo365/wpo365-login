@@ -4,7 +4,7 @@
      *  Plugin URI: https://www.wpo365.com/downloads/wordpress-office-365-login/
      *  Github URI: https://github.com/wpo365/wpo365-login
      *  Description: Wordpress + Office 365 login allows Microsoft O365 users to seamlessly and securely log on to your corporate Wordpress intranet. The plugin will create a Wordpress user for each corporate user when logged on to Office 365 and thus avoiding the default Wordpress login screen: No username or password required.
-     *  Version: 2.9
+     *  Version: 3.0
      *  Author: info@wpo365.com
      *  Author URI: https://www.wpo365.com
      *  License: GPL2+
@@ -13,7 +13,7 @@
     // Prevent public access to this script
     defined( 'ABSPATH' ) or die( );
 
-    $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] = '2.9';
+    $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] = '3.0';
     $GLOBALS[ 'WPO365_PLUGIN_DIR' ] = __DIR__;
     
     // Require dependencies
@@ -36,7 +36,7 @@
     add_action( 'init', __NAMESPACE__ . '\Wpo\Aad\Auth::validate_current_session' );
 
     // Prevent email address update
-    add_action( 'user_profile_update_errors', __NAMESPACE__ . '\Wpo\User\User_Manager::prevent_email_change' );
+    add_action( 'personal_options_update', __NAMESPACE__ . '\Wpo\User\User_Manager::prevent_email_change' );
 
     // Only allow password changes for non-O365 users and only when already logged on to the system
     add_filter( 'show_password_fields',  __NAMESPACE__ . '\Wpo\User\User_Manager::show_password_change_and_reset' );
@@ -46,13 +46,30 @@
     add_filter( 'login_message', __NAMESPACE__ . '\Wpo\Util\Error_Handler::check_for_login_messages' );
 
     // Configure the options
-    add_action( 'plugins_loaded', function ( ) {
+    add_action( 'plugins_loaded', function () {
         
         if( !is_plugin_active( 'redux-framework/redux-framework.php' ) ) {
+
             return;
+
         }
-        
+
+        // When multisite then try and obtain settings from the main site in the network
+        if( is_multisite() ) {
+
+            // Check for cached options and update when different from main site
+            global $current_site;
+            $main_site_blog_id = (int)$current_site->blog_id;
+            if( get_option( 'wpo365_options' ) != get_blog_option( $main_site_blog_id, 'wpo365_options' ) ) {
+
+                update_option( 'wpo365_options', get_blog_option( 1, 'wpo365_options' ) );
+
+            }
+
+        }
+
         require_once( dirname( __FILE__) . '/Configs/Wpo365_Redux_Config.php' );
+
     }, 30);
 
     // Show admin notification when WPO365 not properly configured
@@ -68,5 +85,5 @@
         }
         
     });
-    
+
 ?>

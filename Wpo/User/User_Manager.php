@@ -56,15 +56,59 @@
             // Try find an existing user by email
             $wp_usr = get_user_by( 'email', $usr->email );
 
-            // Or create one if not found
-            if( $wp_usr === false ) {
-                $wp_usr = User_Manager::add_user( $usr );
+            // Get target site info
+            $site_info = Helpers::target_site_info( $_POST[ 'state' ] );
+
+            if( $site_info == null ) {
+
+                Logger::write_log( 'DEBUG', 'Could not retrieve necessary site info needed to continue' );
+                return false;
+
             }
 
-            // Could not create user
+            $create_users_and_add = isset( $GLOBALS[ 'wpo365_options' ] ) 
+                                    && isset( $GLOBALS[ 'wpo365_options' ][ 'create_and_add_users' ] )
+                                    && $GLOBALS[ 'wpo365_options' ][ 'create_and_add_users' ] == 1 ? true : false; 
+
+            // Create a new WP user if not found but only if desired
             if( $wp_usr === false ) {
-                return false;
-            }
+
+                if( $create_users_and_add ) {
+
+                    // Add the user with the default role to the current site
+                    // In case of Wordpress Multisite the user is added to the main site 
+                    // but will not be added to the targetted site
+                    $wp_usr = User_Manager::add_user( $usr );
+
+                }
+                else {
+
+                    Logger::write_log( 'DEBUG', 'User not found and settings prevented creating a new user on-demand' );
+                    return false; // User not found and new users shall not be created
+
+                }
+
+            } // else wp user already created so continue
+            
+            // In case of multi site add user to target site but only if desired
+            if( $site_info[ 'is_multi' ] ) {
+                
+                if( !is_user_member_of_blog( $wp_usr->ID, $site_info[ 'blog_id' ] ) && $create_users_and_add ) {
+
+                    if( isset( $GLOBALS[ 'wpo365_options' ] )
+                        && isset( $GLOBALS[ 'wpo365_options' ][ 'new_usr_default_role' ] ) ) {
+                            add_user_to_blog( $site_info[ 'blog_id' ], $wp_usr->ID, $GLOBALS[ 'wpo365_options' ][ 'mu_new_usr_default_role' ] );
+                    }
+                    else {
+
+                        Logger::write_log( 'DEBUG', 'Could not add user to site due to missing configuration (default role for user not found)' );
+                        return false;
+
+                    }
+
+                } // else user already added to target site so continue
+
+            } // else not multi site so no need to add user target site explicitely
 
             // Now log on the user
             wp_set_auth_cookie( $wp_usr->ID, true );  // Both log user on
@@ -109,7 +153,10 @@
                 || empty( $GLOBALS[ 'wpo365_options' ][ 'new_usr_default_role' ] ) ) {
                 return false;
             }
-
+            
+            // Since 3.0 it's possible to override default user with a setting in wp-config
+            $role = defined( 'WPO365_DEFAULT_USER_ROLE' ) ? strtolower( WPO365_DEFAULT_USER_ROLE ) : strtolower( $GLOBALS[ 'wpo365_options' ][ 'new_usr_default_role' ] );
+            
             $userdata = array( 
                 'user_login'    => $usr->upn,
                 'user_pass'     => uniqid(),
@@ -119,7 +166,7 @@
                 'first_name'    => $usr->first_name,
                 'last_name'     => $usr->last_name,
                 'last_name'     => $usr->last_name,
-                'role'          => strtolower( $GLOBALS[ 'wpo365_options' ][ 'new_usr_default_role' ] )
+                'role'          => $role,
             );
 
             // Insert in Wordpress DB
@@ -204,15 +251,18 @@
 
             $usr_old = wp_get_current_user();
             $usr_meta = get_user_meta( $usr_old->ID );
-
-            if( isset( $_POST[ 'email' ] )
+            
+            if( isset( $_POST[ 'email' ] ) 
+                && $_POST[ 'email' ] != $usr_old->user_email 
                 && isset( $usr_meta[ 'auth_source' ] ) 
-                && strtolower( $usr_meta[ 'auth_source' ][0] ) == 'aad'
-                && $_POST[ 'email' ] != $usr_old->user_email ) {
+                && strtolower( $usr_meta[ 'auth_source' ][0] ) == 'aad' ) {
 
-                // Prevent update
-                $errors->add( 'email_update_error' ,__( 'Updating your email address is currently not allowed' ) );
-                return;
+                    // Prevent update
+                    unset( $_POST[ 'email' ] );
+                    
+                    add_action( 'user_profile_update_errors', function( $errors ) {
+                        $errors->add( 'email_update_error' ,__( 'Updating your email address is currently not allowed' ) );
+                    });
             }
         }
 

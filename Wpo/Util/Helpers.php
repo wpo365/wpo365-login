@@ -235,6 +235,119 @@
         }
 
         /**
+         * Analyzes url and tries to discover site details for both single and multisite WP networks
+         *
+         * @since   3.0
+         * @param   string    target $url of the site to analyze (can point to a post, a subsite etc.)
+         * @return  array     associative array with blog id, site url, network url, multisite y/n etc.
+         */
+        public static function target_site_info( $url ) {
+
+            // Ensure url starts with protocol
+            if( strpos( $url, 'http' ) !== 0 ) {
+
+                return null;
+
+            }
+
+            // Multisite has dependencies that are only loaded when needed
+            if( is_multisite() ) {
+                
+                return self::ms_target_site_info( $url );
+
+            }
+
+            // Not multisite
+            $site_url = site_url();
+
+            $segments = explode( '/', $site_url );
+            $nr_of_segments = sizeof( $segments );
+
+            $protocol = str_replace( ':', '', $segments[ 0 ] );
+            $domain = $segments[ 2 ];
+            $path = $nr_of_segments == 3 ? '/' : ('/' . implode( '/', array_slice( $segments, 3, $nr_of_segments - 3 ) ) . '/' );
+            $blogid = get_current_blog_id(); // may be 0 for main site but this may not be target site 
+            
+            return array(
+
+                'blog_id'                    => $blogid, // always 1
+                'protocol'                   => $protocol,
+                'domain'                     => $domain,
+                'path'                       => $path,
+                'is_multi'                   => false,
+                'target_site_url'            => $site_url,
+                'network_site_url'           => $site_url,
+                'target_is_network_site'     => true,
+                'subdomain_install'          => false,
+
+            );
+
+        }
+
+        /**
+         * Analyzes url and tries to discover site details for both single and multisite WP networks (private, use
+         * target_site_info() instead)
+         *
+         * @since   3.0
+         * @param   string    target $url of the site to analyze (can point to a post, a subsite etc.)
+         * @return  array     associative array with blog id, site url, network url, multisite y/n etc.
+         */
+        private static function ms_target_site_info( $url ) {
+
+            $network_site_url = network_site_url(); // if not multisite site_url() is used
+
+            $segments = explode( '/', $url );
+            $nr_of_segments = sizeof( $segments );
+
+            if( $nr_of_segments < 3 ) {
+
+                return false;                    
+
+            }
+
+            $protocol = str_replace( ':', '', $segments[ 0 ] );
+            $domain = $segments[ 2 ];
+            $path = '/';
+            $blogid = get_blog_id_from_url( $domain ); // may be 0 for main site but this may not be target site
+            $subdomain_install = get_site_option( 'subdomain_install' );
+
+            if( $nr_of_segments > 3 ) {
+
+                for( $i = 3; $i < $nr_of_segments; $i++ ) {
+
+                    $path_test = '/' . implode( '/', array_slice( $segments, 3, $nr_of_segments - $i ) ) . '/';
+
+                    $blog_id_test = get_blog_id_from_url( $domain, $path_test );
+                    
+                    if( $blog_id_test > 0 ) {
+
+                        $blogid = $blog_id_test;
+                        $path = $path_test;
+                        break;
+
+                    }
+
+                }
+
+            }
+            
+            return array(
+
+                'blog_id'                    => $blogid,
+                'protocol'                   => $protocol,
+                'domain'                     => $domain,
+                'path'                       => $path,
+                'is_multi'                   => true,
+                'target_site_url'            => ( $protocol . '://' . $domain . $path ),
+                'network_site_url'           => $network_site_url,
+                'target_is_network_site'     => ( $protocol . '://' . $domain . $path == $network_site_url ),
+                'subdomain_install'          => $subdomain_install,
+
+            );
+
+        }
+
+        /**
          * Removes query string from string ( there may be an incompatibility with URL rewrite )
          *
          * @since 2.5

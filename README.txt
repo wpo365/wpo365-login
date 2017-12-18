@@ -4,7 +4,7 @@ Donate link: https://www.wpo365.com
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.9
-Stable tag: 2.9
+Stable tag: 3.0
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -152,3 +152,8 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 = 2.9 =
 * Fixed issue with keys retrieved from Microsoft that may prevent a user from logging in successfully
 
+= 3.0 =
+* Added support for Wordpress multisite [configuration](https://www.wpo365.com/version-3-0-supports-wordpress-multisite-wpmu/)
+* Added configuration for a default role in a sub site
+* Added configuration to prevent the automatic creation of new wordpress users 
+* Added wp-config setting "WPO365_DEFAULT_USER_ROLE" that optionally can override corresponding redux option to tighten security

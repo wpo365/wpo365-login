@@ -22,7 +22,7 @@
         // This is where your data is stored in the database and also becomes your global variable name.
         'display_name'         => 'Wordpress + Office 365 - login',
         // Name that appears at the top of your panel
-        'display_version'      => '2.9',
+        'display_version'      => '3.0',
         // Version that appears at the top of your panel
         'menu_type'            => 'menu',
         //Specify if the admin menu should appear or not. Options: menu or submenu (Under appearance only)
@@ -111,6 +111,12 @@
     );
 
     $args['admin_bar_links'][] = array(
+        'id'    => 'wpo365-installation',
+        'href'  => 'https://www.wpo365.com/version-3-0-supports-wordpress-multisite-wpmu/',
+        'title' => __( 'Wordpress multisite', 'wpo-365-options' ),
+    );
+
+    $args['admin_bar_links'][] = array(
         'id'    => 'wpo365-troubleshooting',
         'href'  => 'https://www.wpo365.com/troubleshooting-the-wpo365-login-plugin/',
         'title' => __( 'Troubleshooting', 'wpo-365-options' ),
@@ -149,9 +155,9 @@
 
     // -> START Basic Fields
     Redux::setSection($opt_name, array(
-        'title'  => __( 'Azure AD', 'wpo-365-options' ),
-        'id'     => 'aad_config',
-        'desc'   => __( 'Configuration Section for relevant Azure Active Directory and Azure Application Registration settings', 'wpo-365-options' ),
+        'title'    => __( 'Azure AD', 'wpo-365-options' ),
+        'id'       => 'aad_config',
+        'desc'     => __( 'For Wordpress Multisite these settings will be automatically inherited from the main network site and changes will be overwritten', 'wpo-365-options' ),
         //'icon'   => 'el el-home',
         'fields' => array(
             array(
@@ -171,7 +177,7 @@
                 'desc'     => __( 'Azure Active Directory Identifier', 'wpo-365-options' ),
                 //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
                 'hint'     => array(
-                    'content' => 'The {tenant} value in the path of the request can be used to control who can sign into the application. The allowed values are tenant identifiers, for example, 8eaef023-2b34-4da1-9baa-8bc8c9d6a490 or contoso.onmicrosoft.com or common for tenant-independent tokens',
+                    'content' => 'The {tenant} value in the path of the request can be used to control who can sign into the application. The allowed values are tenant identifiers, for example, 8eaef023-2b34-4da1-9baa-8bc8c9d6a490 or contoso.onmicrosoft.com or common for tenant-independent tokens.',
                 )
             ),
             array(
@@ -270,9 +276,9 @@
     ) );
 
     Redux::setSection($opt_name, array(
-        'title'  => __( 'User Management', 'wpo-365-options' ),
-        'id'     => 'usrmgmt_config',
-        'desc'   => __( 'Configuration Section for user management related settings', 'wpo-365-options' ),
+        'title'    => __( 'User Management', 'wpo-365-options' ),
+        'id'       => 'usrmgmt_config',
+        'desc'     => __( 'For Wordpress Multisite these settings will be automatically inherited from the main network site and changes will be overwritten', 'wpo-365-options' ),
         //'icon'   => 'el el-home',
         'fields' => array(
             array(
@@ -295,7 +301,7 @@
                 'id'       => 'auth_scenario',
                 'type'     => 'select',
                 'title'    => __( 'Authentication scenario', 'wpo-365-options' ),
-                'subtitle' => __( 'Select \'Intranet\' to secure both Wordpress front- and backend and \'Internet\' to secure only the backend with WPO365-login', 'wpo-365-options' ),
+                'subtitle' => __( 'Select \'Intranet\' to secure both Wordpress front- and backend and \'Internet\' to secure only the backend with WPO365-login.', 'wpo-365-options' ),
                 //'desc'     => __( 'This is the description field, again good for additional info.', 'redux-framework-demo' ),
                 'options'  => array(
                     '1' => 'Intranet',
@@ -304,15 +310,34 @@
                 'default'  => '1'
             ),
             array(
+                'id'       => 'create_and_add_users',
+                'type'     => 'checkbox',
+                'title'    => __( 'Create new users', 'wpo-365-options' ),
+                'desc'     => __( 'Automatically create a Wordpress user' ),
+                'hint'     => array(
+                    'content' => __( 'When checked the plugin will try and find an existing Wordpress user given the user\'s email address and if not found create a new user. In case of Wordpress Multisite the user will also be added to the site he/she tried to access. If unchecked the user with a given email address must already be (manually) created prior to that user logging in.', 'wpo-365-options' ),
+                ),
+                'default'  => '1'
+            ),
+            array(
                 'id'       => 'new_usr_default_role',
                 'type'     => 'text',
-                'title'    => __( 'Default role', 'wpo-365-options' ),
-                'desc'     => __( 'Role assigned when creating a new Wordpress user to match an Office 365 user' ),
+                'title'    => __( 'Default role main site', 'wpo-365-options' ),
+                'desc'     => __( 'Role assigned in the main when creating a new Wordpress user to match an Office 365 user' ),
                 'default'  => 'subscriber',
-                //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
-                //'hint'     => array(
-                //    'content' => 'Here authentication responses can be sent and received by your app. It must exactly match one of the redirect_uris you registered in the portal, except it must be url encoded.',
-                //)
+                'hint'     => array(
+                    'content' => 'In case of a multisite Wordpress installation the user is added to the main site and to the site he/she is requesting access to. This settings is for the default role in the main site.',
+                )
+            ),
+            array(
+                'id'       => 'mu_new_usr_default_role',
+                'type'     => 'text',
+                'title'    => __( 'Default role sub site', 'wpo-365-options' ),
+                'desc'     => __( 'ONLY USED FOR MULTISITE INSTALLATIONS - Role assigned in a subsite when creating a new Wordpress user to match an Office 365 user' ),
+                'default'  => 'author',
+                'hint'     => array(
+                    'content' => 'In case of a multisite Wordpress installation the user is added to the main site and to the site he/she is requesting access to. This settings is for the default role in the latter site.',
+                )
             )
         )
     ) );
@@ -320,7 +345,7 @@
     Redux::setSection($opt_name, array(
         'title'  => __( 'Miscellaneaous', 'wpo-365-options' ),
         'id'     => 'misc_config',
-        'desc'   => __( 'Configuration Section for miscellaneous settings', 'wpo-365-options' ),
+        'desc'   => __( 'For Wordpress Multisite these settings will be automatically inherited from the main network site and changes will be overwritten', 'wpo-365-options' ),
         //'icon'   => 'el el-home',
         'fields' => array(
             array(
