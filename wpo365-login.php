@@ -13,7 +13,7 @@
     // Prevent public access to this script
     defined( 'ABSPATH' ) or die( );
 
-    $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] = '3.0';
+    $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] = '3.1';
     $GLOBALS[ 'WPO365_PLUGIN_DIR' ] = __DIR__;
     
     // Require dependencies

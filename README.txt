@@ -4,7 +4,7 @@ Donate link: https://www.wpo365.com
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.9
-Stable tag: 3.0
+Stable tag: 3.1
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -157,3 +157,6 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 * Added configuration for a default role in a sub site
 * Added configuration to prevent the automatic creation of new wordpress users 
 * Added wp-config setting "WPO365_DEFAULT_USER_ROLE" that optionally can override corresponding redux option to tighten security
+
+= 3.1 =
+* Added the option to white-list domains for users that may access your Wordpress site. This is only useful, when configuring the plugin to use in combination with a multi-tenant Azure AD application registration. If you have no idea, what this is about, then leaving this field empty is your best option.

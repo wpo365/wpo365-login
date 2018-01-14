@@ -106,6 +106,28 @@
         }
 
         /**
+         * Gets the domain (host) part of an email address.
+         * 
+         * @since 3.1
+         * 
+         * @param   string  $email_address  email address to analyze
+         * @return  (mixed|boolean|string)  returns false if email cannot be validated and otherwise the 
+         *                                  email address' host part
+         */
+        public static function get_smtp_domain_from_email_address( $email_address ) {
+
+            if( strpos( $email_address, '@') === false 
+                || strpos( $email_address, '.') === false  ) {
+
+                    return false;
+
+            }
+
+            return explode( '@', $email_address )[1];
+
+        }
+
+        /**
          * Takes a one dimensional set of results and transforms this into 
          * a mulit dimensional array of rows with a max size equal to $cols
          *

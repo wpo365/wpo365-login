@@ -22,7 +22,7 @@
         // This is where your data is stored in the database and also becomes your global variable name.
         'display_name'         => 'Wordpress + Office 365 - login',
         // Name that appears at the top of your panel
-        'display_version'      => '3.0',
+        'display_version'      => '3.1',
         // Version that appears at the top of your panel
         'menu_type'            => 'menu',
         //Specify if the admin menu should appear or not. Options: menu or submenu (Under appearance only)
@@ -248,6 +248,16 @@
                     'content' => 'Page file names listed here will be excluded from session validation.',
                 ),
                 'default'     => 'wp-login.php;wp-cron.php;admin-ajax.php'
+            ),
+            array(
+                'id'       => 'domain_whitelist',
+                'type'     => 'textarea',
+                'title'    => __( 'Domain whitelist', 'wpo-365-options' ),
+                'desc'     => __( 'Semi colon separated list of domain names', 'wpo-365-options' ),
+                //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
+                'hint'     => array(
+                    'content' => 'Only users with (SMTP) domains listed here will be allowed to sign on. This is only useful, when configuring the plugin to use a multi-tenant Azure AD application registration. If you have no idea, what this is about, then leaving this field empty is your best option.',
+                ),
             ),
             array(
                 'id'       => 'session_duration',

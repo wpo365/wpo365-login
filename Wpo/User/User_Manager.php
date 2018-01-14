@@ -53,6 +53,22 @@
                 
             }
 
+            // Check whether the user's domain is white listed (if empty this check is skipped)
+            $domain_white_list = !empty( $GLOBALS[ 'wpo365_options' ][ 'domain_whitelist' ] ) ? trim( $GLOBALS[ 'wpo365_options' ][ 'domain_whitelist' ] ) : '';
+
+            if( !empty( $domain_white_list ) ) {
+
+                $smtp_domain = Helpers::get_smtp_domain_from_email_address();
+                    
+                if( strpos( $GLOBALS[ 'wpo365_options' ][ 'domain_whitelist' ], $smtp_domain ) === false ) {
+
+                    Logger::write_log( 'DEBUG', 'Cannot continue since the domain the user is coming from is not whitelisted' );
+                    return false;
+
+                }
+
+            }
+            
             // Try find an existing user by email
             $wp_usr = get_user_by( 'email', $usr->email );
 
@@ -77,7 +93,7 @@
 
                     // Add the user with the default role to the current site
                     // In case of Wordpress Multisite the user is added to the main site 
-                    // but will not be added to the targetted site
+                    // but will not be added to the targeted site
                     $wp_usr = User_Manager::add_user( $usr );
 
                 }
