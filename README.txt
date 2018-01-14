@@ -4,7 +4,7 @@ Donate link: https://www.wpo365.com
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.9
-Stable tag: 3.1
+Stable tag: 3.2
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -160,3 +160,6 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 = 3.1 =
 * Added the option to white-list domains for users that may access your Wordpress site. This is only useful, when configuring the plugin to use in combination with a multi-tenant Azure AD application registration. If you have no idea, what this is about, then leaving this field empty is your best option.
+
+= 3.2 =
+* Fixed issue with domain white-list.

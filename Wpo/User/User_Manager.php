@@ -58,9 +58,9 @@
 
             if( !empty( $domain_white_list ) ) {
 
-                $smtp_domain = Helpers::get_smtp_domain_from_email_address();
-                    
-                if( strpos( $GLOBALS[ 'wpo365_options' ][ 'domain_whitelist' ], $smtp_domain ) === false ) {
+                $smtp_domain = Helpers::get_smtp_domain_from_email_address( $usr->email );
+
+                if( strpos( $domain_white_list, $smtp_domain ) === false ) {
 
                     Logger::write_log( 'DEBUG', 'Cannot continue since the domain the user is coming from is not whitelisted' );
                     return false;
