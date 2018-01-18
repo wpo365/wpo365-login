@@ -285,9 +285,6 @@
          */
         public static function get_openidconnect_and_oauth_token() {
 
-            $nonce = uniqid();
-            Helpers::set_cookie( 'WPO365_NONCE', $nonce, time() + 120 );
-
             $params = array( 
                 'client_id'     => $GLOBALS[ 'wpo365_options' ][ 'application_id' ],
                 'response_type' => 'id_token code',
@@ -296,7 +293,7 @@
                 'scope'         => $GLOBALS[ 'wpo365_options' ][ 'scope' ],
                 'resource'      => $GLOBALS[ 'wpo365_options' ][ 'aad_resource_uri' ],
                 'state'         => ( isset( $_SERVER[ 'HTTPS' ] ) ? 'https' : 'http' ) . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]",
-                'nonce'         => $nonce
+                'nonce'         => wp_create_nonce( 'aad_auth' ),
             );
 
             $authorizeUrl = 'https://login.microsoftonline.com/' . $GLOBALS[ 'wpo365_options' ][ 'tenant_id' ] . '/oauth2/authorize?' . http_build_query( $params, '', '&' );
@@ -321,21 +318,8 @@
             // Decode the id_token
             $id_token = Auth::decode_id_token();
 
-            if( Helpers::get_cookie( 'WPO365_NONCE' ) !== false ) {
-
-                Logger::write_log( 'DEBUG', 'Found nonce cookie with value: ' . Helpers::get_cookie( 'WPO365_NONCE' ) );
-
-            }
-            else {
-
-                Logger::write_log( 'DEBUG', 'Nonce cookie is missing' );
-
-            }
-            
             // Handle if token could not be processed or nonce is invalid
-            if( $id_token === false 
-                || Helpers::get_cookie( 'WPO365_NONCE' ) === false 
-                || $id_token->nonce != $_COOKIE[ 'WPO365_NONCE' ] ) {
+            if( $id_token === false || $id_token->nonce != wp_create_nonce( 'aad_auth' ) ) {
 
                 Error_Handler::add_login_message( __( 'Your login might be tampered with. Please contact your System Administrator.' ) );
                 Logger::write_log( 'ERROR', 'id token could not be processed and user will be redirected to default Wordpress login' );
@@ -344,9 +328,6 @@
 
             }
         
-            // Delete the nonce cookie variable
-            Helpers::set_cookie( 'WPO365_NONCE', '', time() -3600 );
-                    
             // Ensure user with the information found in the id_token
             $usr = User_Manager::ensure_user( $id_token );
             
