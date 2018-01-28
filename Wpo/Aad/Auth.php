@@ -23,7 +23,7 @@
         const USR_META_WPO365_AUTH_CODE = 'WPO365_AUTH_CODE';
 
         /**
-         * Destroys any session and authenication artefacts and hooked up with wp_logout and should
+         * Destroys any session and authenication artefacts and hooked up with wpo365_logout and should
          * therefore never be called directly to avoid endless loops etc.
          *
          * @since   1.0
@@ -50,8 +50,13 @@
             if( strpos( strtolower( wp_login_url() ), 
                 strtolower( basename( $_SERVER[ 'PHP_SELF' ] ) ) ) === false ) {
 
-                    wp_logout(); // This will also call destroy_session because of wp_logout hook
+                    do_action( 'destroy_wpo365_session' );
+
+                    wp_logout();
+
                     auth_redirect();
+
+                    exit();
 
             }
             
@@ -75,9 +80,11 @@
                 && !is_user_logged_in() ) {
                 
                 Logger::write_log( 'ERROR', 'WPO365 not configured' );
+
                 Error_Handler::add_login_message( __( 'Wordpress + Office 365 login not configured yet. Please contact your System Administrator.' ) );
+
                 Auth::goodbye();
-                return;
+                // -> exit();
 
             }
 
@@ -85,9 +92,13 @@
             if( isset( $_POST[ 'error' ] ) ) {
             
                 $error_string = $_POST[ 'error' ] . isset( $_POST[ 'error_description' ] ) ? $_POST[ 'error_description' ] : '';
+
                 Logger::write_log( 'ERROR', $error_string );
+
                 Error_Handler::add_login_message( $_POST[ 'error' ] . __( '. Please contact your System Administrator.' ) );
+
                 Auth::goodbye();
+                // -> exit();
             
             }
 
@@ -95,6 +106,7 @@
             if( isset( $_POST[ 'state' ] ) && isset( $_POST[ 'id_token' ] ) ) {
 
                 \Wpo\Aad\Auth::process_openidconnect_token();
+                return;
 
             }
 
@@ -125,7 +137,7 @@
 
             $wpo_auth = Auth::get_unique_user_meta( Auth::USR_META_WPO365_AUTH );
 
-            // Check if Wordpress-only user that is already logged on
+            // Logged-on WP-only user
             if( $wpo_auth === NULL ) {
 
                 Logger::write_log( 'DEBUG', 'User is a Wordpress-only user so no authentication is required' );
@@ -133,13 +145,33 @@
 
             }
             
-            // Check if user either not logged or has login that is no longer valid
-            if( $wpo_auth === false
-                || Auth::check_user_meta_is_expired( Auth::USR_META_WPO365_AUTH, $wpo_auth ) ) { 
-
-                wp_logout(); // logout but don't redirect to the login page
-                Logger::write_log( 'DEBUG', 'User either not logged on or has login is not longer valid' );
+            // User not logged on
+            if( $wpo_auth === false ) {
+                
                 Auth::get_openidconnect_and_oauth_token();
+                
+                return;
+            }
+
+            // Check if user has expired 
+            if( Auth::check_user_meta_is_expired( Auth::USR_META_WPO365_AUTH, $wpo_auth ) ) {
+
+                do_action( 'destroy_wpo365_session' );
+            
+                wp_logout();
+
+                wp_set_current_user( 0 );
+
+                unset($_COOKIE[AUTH_COOKIE]);
+                unset($_COOKIE[SECURE_AUTH_COOKIE]);
+                unset($_COOKIE[LOGGED_IN_COOKIE]);
+
+                Logger::write_log( 'DEBUG', 'User logged out because current login not valid anymore' );
+
+                Auth::get_openidconnect_and_oauth_token();
+
+                return;
+            
             }
 
             // Everything OK
@@ -165,25 +197,11 @@
             
             }
 
-            $wp_usr = wp_get_current_user();
-            $usr_meta = get_user_meta( $wp_usr->ID );
-
-            if( !isset( $usr_meta[ $key ] ) ) {
+            update_user_meta( get_current_user_id(), $key, $value );
                 
-                add_user_meta( $wp_usr->ID, $key, $value, true );
-                
-                Logger::write_log( 'DEBUG', 'Set user meta for ' . $key );
-                return true;
+            Logger::write_log( 'DEBUG', 'Updated user meta for ' . $key );
             
-            }
-            else {
-            
-                update_user_meta( $wp_usr->ID, $key, $value );
-                
-                Logger::write_log( 'DEBUG', 'Updated user meta for ' . $key );
-                return true;
-            
-            }
+            return true;
 
         }
 
@@ -199,14 +217,12 @@
 
             if( !is_user_logged_in() ) {
                 
-                Logger::write_log( 'DEBUG', 'Cannot look up user meta ' . $key . ' for user that is not logged' );
+                Logger::write_log( 'DEBUG', 'Cannot delete user meta ' . $key . ' for user that is not logged' );
                 return false;
             
             }
 
-            $wp_usr = wp_get_current_user();
-
-            delete_user_meta( $wp_usr->ID, $key ); // Potentially the user is logged on as a Worp<
+            delete_user_meta( get_current_user_id(), $key ); // Potentially the user is logged on as a Worp<
             
             Logger::write_log( 'DEBUG', 'Tried deleting user meta for ' . $key );
         }
@@ -228,19 +244,9 @@
             
             }
                 
-            $wp_usr = wp_get_current_user();
-            $usr_meta = get_user_meta( $wp_usr->ID );
+            $usr_meta = get_user_meta( get_current_user_id(), $key, true );
 
-            if( !isset( $usr_meta[ $key ] )
-                || sizeof( $usr_meta[ $key ] ) != 1 ) {
-
-                    Logger::write_log( 'DEBUG', 'No user meta found for ' . $key );
-                    return NULL;
-                        
-            }
-
-            return $usr_meta[ $key ][0];
-
+            return empty($usr_meta) ? NULL : $usr_meta;
         }
 
         /**
@@ -262,6 +268,7 @@
                 || intval( $value_with_expiry[0] ) < time() ) { 
 
                 Auth::delete_user_meta( $key );
+
                 Logger::write_log( 'DEBUG', 'Expired user meta deleted for ' . $key );
 
                 return true;

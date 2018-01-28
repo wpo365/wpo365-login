@@ -131,10 +131,9 @@
             wp_set_current_user( $wp_usr->ID );       // And set current user
 
             // Mark the user as AAD in case he/she isn't ( because manually added but still using AAD to authenticate )
-            $usr_meta = get_user_meta( $wp_usr->ID );
+            $usr_meta = get_user_meta( $wp_usr->ID, 'auth_source', true );
             
-            if( !isset( $usr_meta[ 'auth_source' ] )
-                || strtolower( $usr_meta[ 'auth_source' ][0] ) != 'aad' ) {
+            if( empty( $usr_meta ) || strtolower( $usr_meta ) != 'aad' ) {
 
                 // Add an extra meta information that this user is in fact a user created by WPO365
                 add_user_meta( $wp_usr->ID, 'auth_source', 'AAD', true );

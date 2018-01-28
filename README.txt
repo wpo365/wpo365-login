@@ -4,7 +4,7 @@ Donate link: https://www.wpo365.com
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.9
-Stable tag: 3.3
+Stable tag: 3.4
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -166,3 +166,6 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 = 3.3 =
 * Fixed issue with safari and firefox nonce cookie not being persisted on redirect
+
+= 3.4 =
+* Fixed issue with login-refresh error causing a "your login might be tampered with" error after an hour

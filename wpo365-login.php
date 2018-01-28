@@ -4,7 +4,7 @@
      *  Plugin URI: https://www.wpo365.com/downloads/wordpress-office-365-login/
      *  Github URI: https://github.com/wpo365/wpo365-login
      *  Description: Wordpress + Office 365 login allows Microsoft O365 users to seamlessly and securely log on to your corporate Wordpress intranet. The plugin will create a Wordpress user for each corporate user when logged on to Office 365 and thus avoiding the default Wordpress login screen: No username or password required.
-     *  Version: 3.3
+     *  Version: 3.4
      *  Author: info@wpo365.com
      *  Author URI: https://www.wpo365.com
      *  License: GPL2+
@@ -13,7 +13,7 @@
     // Prevent public access to this script
     defined( 'ABSPATH' ) or die( );
 
-    $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] = '3.3';
+    $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] = '3.4';
     $GLOBALS[ 'WPO365_PLUGIN_DIR' ] = __DIR__;
     
     // Require dependencies
@@ -32,7 +32,7 @@
     add_action( 'plugins_loaded', __NAMESPACE__ . '\Wpo\Util\Helpers::check_version' );
     
     // Ensure session is valid and remains valid
-    add_action( 'wp_logout', __NAMESPACE__ . '\Wpo\Aad\Auth::destroy_session' );
+    add_action( 'destroy_wpo365_session', __NAMESPACE__ . '\Wpo\Aad\Auth::destroy_session' );
     add_action( 'init', __NAMESPACE__ . '\Wpo\Aad\Auth::validate_current_session' );
 
     // Prevent email address update
