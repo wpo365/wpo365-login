@@ -16,12 +16,7 @@
         const TAMPERED_WITH     = 'TAMPERED_WITH';
         const USER_NOT_FOUND    = 'USER_NOT_FOUND';
 
-        const ERROR_MESSAGES = Array(
-            'NOT_CONFIGURED'    => 'Wordpress + Office 365 login not configured yet. Please contact your System Administrator.',
-            'CHECK_LOG'         => 'Please contact your System Administrator and check log file.',
-            'TAMPERED_WITH'     => 'Your login might be tampered with. Please contact your System Administrator.',
-            'USER_NOT_FOUND'    => 'Could not create or retrieve your login. Please contact your System Administrator.'
-        );
+        
 
 
         /**
@@ -46,12 +41,31 @@
 
             foreach( explode( ',', $login_error_codes ) as $login_error_code ) {
 
-                $result .= '<p class="message">' . self::ERROR_MESSAGES[ $login_error_code ] . '</p><br />';
+                $result .= '<p class="message">' . self::get_error_message( $login_error_code ) . '</p><br />';
 
             }
             
             // Return messages to display to hook
             return $result;
+        }
+
+        public static function get_error_message( $error_code ) {
+
+            $error_messages = Array(
+                'NOT_CONFIGURED'    => __( 'Wordpress + Office 365 login not configured yet. Please contact your System Administrator.' ),
+                'CHECK_LOG'         => __( 'Please contact your System Administrator and check log file.' ),
+                'TAMPERED_WITH'     => __( 'Your login might be tampered with. Please contact your System Administrator.' ),
+                'USER_NOT_FOUND'    => __( 'Could not create or retrieve your login. Please contact your System Administrator.' )
+            );
+
+            if( array_key_exists( $error_code, $error_messages ) ) {
+
+                return $error_messages[ $error_code ];
+
+            }
+
+            return '';
+            
         }
         
     }

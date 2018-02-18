@@ -4,7 +4,7 @@ Donate link: https://www.wpo365.com
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.9
-Stable tag: 3.6
+Stable tag: 3.7
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -176,3 +176,6 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 = 3.6 =
 * Fixed issues with loading of Redux dependency in case multiple Redux instance are used within one Wordpress site
 * Removed the use of cookies to pass error information between page redirects and by doing so avoid "Cannot modify header information - headers already sent" warnings
+
+= 3.7 =
+* Replaced use of array as const to support older PHP versions
