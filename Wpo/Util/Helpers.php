@@ -12,48 +12,6 @@
     class Helpers {
         
         /**
-         * Simple cookie setter helper method that automatically adds host and path
-         *
-         * @since   1.4
-         * @return  void
-         */
-        public static function set_cookie( $name, $value, $expiry ) {
-            
-            setcookie( $name, $value, $expiry, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN );
-            setcookie( $name, $value, $expiry, ADMIN_COOKIE_PATH, COOKIE_DOMAIN );
-            setcookie( $name, $value, $expiry, COOKIEPATH, COOKIE_DOMAIN );
-            if ( COOKIEPATH != SITECOOKIEPATH ) {
-                setcookie( $name, $value, $expiry, SITECOOKIEPATH, COOKIE_DOMAIN );
-            }
-
-            // add to current request   
-            /* if( !isset( $_COOKIE[ $name ] ) ) {
-
-                $_COOKIE[ $name ] = $value;
-
-            } */
-
-            Logger::write_log( 'DEBUG', "Setting cookie $name with value $value" );
-
-        }
-
-        /**
-         * Simple cookie getter helper
-         *
-         * @since   1.4
-         * @return  mixed   cookie or if not found false
-         */
-        public static function get_cookie( $name ) {
-
-            if( !isset( $_COOKIE[$name] ) ) {
-                return false;
-            }
-
-            return $_COOKIE[$name];
-
-        }
-
-        /**
          * Prevents wordpress from replacing &nbps; and \n with <p> and <br> inside wpo365 shortcodes
          * 
          * @since 2.0
@@ -366,6 +324,22 @@
                 'subdomain_install'          => $subdomain_install,
 
             );
+
+        }
+
+        /**
+         * Adds custom wp query vars
+         * 
+         * @since 3.6
+         * 
+         * @param Array $vars existing wp query vars
+         * @return Array updated $vars that now includes custom wp query vars
+         */
+        public static function add_query_vars_filter( $vars ) {
+
+            $vars[] = 'login_errors';
+
+            return $vars;
 
         }
 

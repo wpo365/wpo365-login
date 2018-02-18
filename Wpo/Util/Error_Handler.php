@@ -11,6 +11,19 @@
 
     class Error_Handler {
 
+        const NOT_CONFIGURED    = 'NOT_CONFIGURED';
+        const CHECK_LOG         = 'CHECK_LOG';
+        const TAMPERED_WITH     = 'TAMPERED_WITH';
+        const USER_NOT_FOUND    = 'USER_NOT_FOUND';
+
+        const ERROR_MESSAGES = Array(
+            'NOT_CONFIGURED'    => 'Wordpress + Office 365 login not configured yet. Please contact your System Administrator.',
+            'CHECK_LOG'         => 'Please contact your System Administrator and check log file.',
+            'TAMPERED_WITH'     => 'Your login might be tampered with. Please contact your System Administrator.',
+            'USER_NOT_FOUND'    => 'Could not create or retrieve your login. Please contact your System Administrator.'
+        );
+
+
         /**
          * Checks for errors in the login messages container and display and unset immediatly after if any
          *
@@ -19,57 +32,28 @@
          */
         public static function check_for_login_messages() {
 
-            $messages_arr = NULL;
+            // Using $_GET here since wp_query is not loaded on login page
+            $login_error_codes = $_GET[ 'login_errors' ];
 
-            // Check to see whether there are any login messages
-            if( Helpers::get_cookie( 'WPO365_LOGIN_ERR_MSGS' ) !== false ) {
-                
-                $messages_arr = explode( ';', base64_decode( $_COOKIE[ 'WPO365_LOGIN_ERR_MSGS' ] ) );
-
-            }
-            else {
+            // Check if any login error codes
+            if( empty( $login_error_codes ) ) {
 
                 return;
 
             }
 
-            // Get messages from the login messages container
             $result = '';
-            foreach( $messages_arr as $msg ) {
 
-                $result .= '<p class="message">' . $msg . '</p><br />';
+            foreach( explode( ',', $login_error_codes ) as $login_error_code ) {
+
+                $result .= '<p class="message">' . self::ERROR_MESSAGES[ $login_error_code ] . '</p><br />';
 
             }
-
-            // Empty the login messages container
-            Helpers::set_cookie( 'WPO365_LOGIN_ERR_MSGS', '', time() - 3600 );
             
             // Return messages to display to hook
             return $result;
         }
-
-        public static function add_login_message( $message ) {
-
-            $messages_arr = NULL;
-
-            // Create login messages container if it does not exist
-            if( Helpers::get_cookie( 'WPO365_LOGIN_ERR_MSGS' ) !== false ) {
-                
-                $messages_arr = explode( ';', base64_decode( $_COOKIE[ 'WPO365_LOGIN_ERR_MSGS' ] ) );
-
-            }
-            else {
-
-                $messages_arr = array();
-
-            }
-
-            // Add new message to array of existing messages
-            $messages_arr[] = $message;
-
-            // Update cookie
-            Helpers::set_cookie( 'WPO365_LOGIN_ERR_MSGS', base64_encode( implode( ';', $messages_arr ) ), time() + 120 );
-        }
+        
     }
 
 ?>

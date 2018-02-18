@@ -19,7 +19,7 @@
     
     class Auth {
 
-        const USR_META_WPO365_AUTH = 'WPO365_AUTH';
+        const USR_META_WPO365_AUTH      = 'WPO365_AUTH';
         const USR_META_WPO365_AUTH_CODE = 'WPO365_AUTH_CODE';
 
         /**
@@ -44,7 +44,7 @@
          * @since   1.0
          * @return  void
          */
-        public static function goodbye() {
+        public static function goodbye( $login_error_code ) {
 
             // Only redirect to login page when user is not already there 
             if( strpos( strtolower( wp_login_url() ), 
@@ -54,7 +54,11 @@
 
                     wp_logout();
 
-                    auth_redirect();
+                    $login_url = wp_login_url( '', true );
+
+                    $login_url = add_query_arg( 'login_errors', $login_error_code, $login_url );
+
+                    wp_redirect( $login_url );
 
                     exit();
 
@@ -81,10 +85,9 @@
                 
                 Logger::write_log( 'ERROR', 'WPO365 not configured' );
 
-                Error_Handler::add_login_message( __( 'Wordpress + Office 365 login not configured yet. Please contact your System Administrator.' ) );
+                Auth::goodbye( Error_Handler::NOT_CONFIGURED );
 
-                Auth::goodbye();
-                // -> exit();
+                return;
 
             }
 
@@ -95,10 +98,9 @@
 
                 Logger::write_log( 'ERROR', $error_string );
 
-                Error_Handler::add_login_message( $_POST[ 'error' ] . __( '. Please contact your System Administrator.' ) );
-
-                Auth::goodbye();
-                // -> exit();
+                Auth::goodbye( Error_Handler::CHECK_LOG );
+                
+                return;
             
             }
 
@@ -328,10 +330,9 @@
             // Handle if token could not be processed or nonce is invalid
             if( $id_token === false || $id_token->nonce != wp_create_nonce( 'aad_auth' ) ) {
 
-                Error_Handler::add_login_message( __( 'Your login might be tampered with. Please contact your System Administrator.' ) );
                 Logger::write_log( 'ERROR', 'id token could not be processed and user will be redirected to default Wordpress login' );
 
-                Auth::goodbye();
+                Auth::goodbye( Error_Handler::TAMPERED_WITH );
 
             }
         
@@ -341,10 +342,9 @@
             // Handle if user could not be processed
             if( $usr === false ) {
 
-                Error_Handler::add_login_message( __( 'Could not create or retrieve your login. Please contact your System Administrator.' ) );
                 Logger::write_log( 'ERROR', 'Could not get or create Wordpress user' );
 
-                Auth::goodbye();
+                Auth::goodbye( Error_Handler::USER_NOT_FOUND );
             }
 
             // Store the Authorization Code for extensions that may need it to obtain access codes for AAD secured resources

@@ -4,7 +4,7 @@
      *  Plugin URI: https://www.wpo365.com/downloads/wordpress-office-365-login/
      *  Github URI: https://github.com/wpo365/wpo365-login
      *  Description: Wordpress + Office 365 login allows Microsoft O365 users to seamlessly and securely log on to your corporate Wordpress intranet. The plugin will create a Wordpress user for each corporate user when logged on to Office 365 and thus avoiding the default Wordpress login screen: No username or password required.
-     *  Version: 3.5
+     *  Version: 3.6
      *  Author: info@wpo365.com
      *  Author URI: https://www.wpo365.com
      *  License: GPL2+
@@ -13,7 +13,7 @@
     // Prevent public access to this script
     defined( 'ABSPATH' ) or die( );
 
-    $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] = '3.5';
+    $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] = '3.6';
     $GLOBALS[ 'WPO365_PLUGIN_DIR' ] = __DIR__;
     
     // Require dependencies
@@ -45,11 +45,19 @@
 
     // Configure the options
     add_action( 'plugins_loaded', function () {
-        
-        if( !is_plugin_active( 'redux-framework/redux-framework.php' ) ) {
+
+        require_once( dirname( __FILE__) . '/Configs/Wpo365_Redux_Config.php' );
+
+    });
+
+    // Activate login authentication once the options are loaded
+    add_action( 'redux/loaded', function() {
+
+        // In case Redux is used for other plugins
+        if( empty( $GLOBALS[ 'wpo365_options' ] ) ) {
 
             return;
-
+    
         }
 
         // When multisite then try and obtain settings from the main site in the network
@@ -66,18 +74,15 @@
 
         }
 
-        require_once( dirname( __FILE__) . '/Configs/Wpo365_Redux_Config.php' );
-
-        \Wpo\Util\Helpers::check_version();
-
-    });
-
-    add_action( 'redux/loaded', function() {
-
         // Start validating the session as soon as all plugins are loaded
         \Wpo\Aad\Auth::validate_current_session();
 
+        \Wpo\Util\Helpers::check_version();
+
     } );
+
+    // Add custom wp query vars
+    add_filter( 'query_vars', '\Wpo\Util\Helpers::add_query_vars_filter' );
 
     // Show admin notification when WPO365 not properly configured
     add_action( 'admin_notices', function( ) {
