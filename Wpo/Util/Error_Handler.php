@@ -52,10 +52,10 @@
         public static function get_error_message( $error_code ) {
 
             $error_messages = Array(
-                'NOT_CONFIGURED'    => __( 'Wordpress + Office 365 login not configured yet. Please contact your System Administrator.' ),
-                'CHECK_LOG'         => __( 'Please contact your System Administrator and check log file.' ),
-                'TAMPERED_WITH'     => __( 'Your login might be tampered with. Please contact your System Administrator.' ),
-                'USER_NOT_FOUND'    => __( 'Could not create or retrieve your login. Please contact your System Administrator.' )
+                self::NOT_CONFIGURED    => __( 'Wordpress + Office 365 login not configured yet. Please contact your System Administrator.' ),
+                self::CHECK_LOG         => __( 'Please contact your System Administrator and check log file.' ),
+                self::TAMPERED_WITH     => __( 'Your login might be tampered with. Please contact your System Administrator.' ),
+                self::USER_NOT_FOUND    => __( 'Could not create or retrieve your login. Please contact your System Administrator.' )
             );
 
             if( array_key_exists( $error_code, $error_messages ) ) {
