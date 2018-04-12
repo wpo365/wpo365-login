@@ -180,6 +180,16 @@
                     'content' => 'The {tenant} value in the path of the request can be used to control who can sign into the application. The allowed values are tenant identifiers, for example, 8eaef023-2b34-4da1-9baa-8bc8c9d6a490 or contoso.onmicrosoft.com or common for tenant-independent tokens.',
                 )
             ),
+			 array(
+                'id'       => 'roleId',
+                'type'     => 'text',
+                'title'    => __( 'AAD role ID', 'wpo-365-options' ),
+                'desc'     => __( 'The role Id that the users need to have. Leave empty to accept all users', 'wpo-365-options' ),
+                //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
+                'hint'     => array(
+                    'content' => 'You can find this in the Azure Portal. Click Azure Active Directory, click groups , choose the group(role) and locate the Id on the role page.',
+                )
+           ),
             array(
                 'id'       => 'application_id',
                 'type'     => 'text',

@@ -15,6 +15,7 @@
         const CHECK_LOG         = 'CHECK_LOG';
         const TAMPERED_WITH     = 'TAMPERED_WITH';
         const USER_NOT_FOUND    = 'USER_NOT_FOUND';
+		const NO_ROLE = 'NO_ROLE';
 
         
 
@@ -55,6 +56,7 @@
                 self::NOT_CONFIGURED    => __( 'Wordpress + Office 365 login not configured yet. Please contact your System Administrator.' ),
                 self::CHECK_LOG         => __( 'Please contact your System Administrator and check log file.' ),
                 self::TAMPERED_WITH     => __( 'Your login might be tampered with. Please contact your System Administrator.' ),
+                self::NO_ROLE    => __( 'You are not authorized, add role via aad. Please contact your System Administrator.' ),
                 self::USER_NOT_FOUND    => __( 'Could not create or retrieve your login. Please contact your System Administrator.' )
             );
 

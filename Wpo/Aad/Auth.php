@@ -335,6 +335,20 @@
                 Auth::goodbye( Error_Handler::TAMPERED_WITH );
 
             }
+			 
+			$hasRole = false;
+			$roles = $id_token->groups;
+			 foreach ($roles as $role) {
+				if($role === $GLOBALS[ 'wpo365_options' ][ 'roleId' ])
+				 {
+					 $hasRole = true;
+				 }
+			} 
+			 if($hasRole === false && $GLOBALS[ 'wpo365_options' ][ 'roleId' ] !== ''){
+				 Logger::write_log( 'ERROR', 'Id token has not the right role' );
+
+                Auth::goodbye( Error_Handler::NO_ROLE );
+			 }
         
             // Ensure user with the information found in the id_token
             $usr = User_Manager::ensure_user( $id_token );
