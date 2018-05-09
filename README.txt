@@ -19,7 +19,7 @@ Wordpress + Office 365 login allows Microsoft O365 users to seamlessly and secur
 - When the 'Intranet' scenario is selected, our plugin will secure both Wordpress front- and backend and will try to verify whether the user can successfully authenticate him or herself with Microsoft Azure Active Directory. If this is the case the user is granted access to page initially requested or else the user is redirected to the default Wordpress login page.
 - On the other hand, when the 'Internet' scenario is selected and the user requests an ordinary (front-end) Wordpress post or page, authentication is omitted. Only when the user requests a page from the backend e.g. /wp-admin the plugin will try and authenticate the user using Azure Active Directory.
 - In both scenarios, users will be automatically logged on after they have successfully authenticated with Azure Active Directory / Office 365
-- And in case the user does so for the very first time, the plugin will create a corresponding new WordPress user (and match both worlds by the user's unique email address)
+- And in case the user does so for the very first time, the plugin will create a corresponding new WordPress user for the first three Office 365 users
 - Still, when a user would navigate to the default Wordpress login page, he or she can still log on using a Wordpress-only account. This maybe desirable for System Administrators to log on independently from any subsystem such as Azure Active Directory.
 - To keep things save, the plugin will by default prevent Office 365 users to change their email address.
 - The plugin will also prevent Office 365 users to request a new password.
@@ -29,6 +29,7 @@ Wordpress + Office 365 login allows Microsoft O365 users to seamlessly and secur
 
 The [premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/) of the plugin offers all of the above, plus:
 
+- Create and update unlimited Office 365 users
 - Enhanced security features e.g. Brute Force Attacks prevention
 - Enhances a user’s WordPress profile with information from Microsoft Graph e.g. office location, job title, mobile and business phone numbers
 - Replaces default WordPress avatar for a user with the Office 365 (O365) profile picture and caches it
