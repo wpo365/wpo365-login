@@ -4,7 +4,7 @@ Donate link: https://www.wpo365.com
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.9
-Stable tag: 4.0
+Stable tag: 4.1
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -70,8 +70,8 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 == Upgrade Notice ==
 
-= 4.0 =
-* Added license validation for the Personal Blog (free) version, in order to prevent the creation of more than 3 users (unlimited users can still be created manually).
+= 4.1 =
+* Fixed "Undefined index page" notice visible on the admin page
 
 == Changelog ==
 
@@ -220,3 +220,6 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 = 4.0 =
 * Added license validation for the Personal Blog (free) version, in order to prevent the creation of more than 3 users (unlimited users can still be created manually).
+
+= 4.1 =
+* Fixed "Undefined index page" notice visible on the admin page
