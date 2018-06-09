@@ -4,7 +4,7 @@
      *  Plugin URI: https://www.wpo365.com/downloads/wordpress-office-365-login/
      *  Github URI: https://github.com/wpo365/wpo365-login
      *  Description: Wordpress + Office 365 login allows Microsoft O365 users to seamlessly and securely log on to your corporate Wordpress intranet. The plugin will create a Wordpress user for each corporate user when logged on to Office 365 and thus avoiding the default Wordpress login screen: No username or password required.
-     *  Version: 4.1
+     *  Version: 4.2
      *  Author: info@wpo365.com
      *  Author URI: https://www.wpo365.com
      *  License: GPL2+
@@ -13,7 +13,7 @@
     // Prevent public access to this script
     defined( 'ABSPATH' ) or die( );
 
-    $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] = '4.1';
+    $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] = '4.2';
     $GLOBALS[ 'WPO365_PLUGIN_DIR' ] = __DIR__;
     
     // Require dependencies
@@ -101,7 +101,7 @@
             ?>
 
             <div class="notice notice-info is-dismissible" style="margin-top: 25px;">
-                <article style="display: flex; flex-wrap: wrap; cursor: pointer;" onclick="location.href='https://www.wpo365.com/downloads/wordpress-office-365-login-premium/'">
+                <article style="display: flex; flex-wrap: wrap;">
                     <div style="flex-grow: 0.1; flex-shrink: 0.9;">
                         <img width="256" height="256" src="https://www.wpo365.com/wp-content/uploads/2018/04/premium-icon-256x256.png">
                     </div>
@@ -109,16 +109,18 @@
                         <div>
                             <h2>WordPress + Office 365 login premium</h2>
                         </div>
-                        <div >
-                            <p>Upgrade today and unlock the following premium features + <strong>support us so we can continue to support you!</strong></p>
+                        <div>
+                            <p><strong><a href="https://www.wpo365.com/downloads/wordpress-office-365-login-premium/" target="_blank">Upgrade</a></strong> today and unlock the following premium features</p>
                             <ul style="list-style: inherit; margin-left: 20px;">
-                                <li>Enriches a user’s WordPress profile with <strong>O365 user profile info</strong> e.g. job title, phone and office location</li>
-                                <li>Enhanced <strong>security</strong> e.g. <a href="https://codex.wordpress.org/Brute_Force_Attacks" target="_blank">Brute Force Attacks</a> prevention</li>
-                                <li>Replaces a user’s default <strong>WordPress avatar</strong> with the Office 365 (O365) profile picture and caches it</li>
+                                <li>Creating and adding unlimited Office 365 users</li>
+                                <li>The ability to <strong><a href="https://www.wpo365.com/synchronize-users-between-office-365-and-wordpress/" target="_blank">quickly rollout new users to WordPress</a></strong> from Active Directory</li>
+                                <li><strong><a href="https://www.wpo365.com/synchronize-users-between-office-365-and-wordpress/" target="_blank">Disable user access</a></strong> to WordPress for users that are disabled in your tenant / domain</li>
+                                <li>Enriches a user’s WordPress profile with <strong><a href="https://www.wpo365.com/configuring-office-365-profile-and-avatar-synchronization/" target="_blank">O365 user profile info</a></strong> e.g. job title, phone and office location</li>
+                                <li>Enhanced security e.g. <strong><a href="https://codex.wordpress.org/Brute_Force_Attacks" target="_blank">Brute Force Attacks</a></strong> prevention</li>
+                                <li>Replaces a user’s default <strong><a href="https://www.wpo365.com/configuring-office-365-profile-and-avatar-synchronization/" target="_blank">WordPress avatar</a></strong> with the Office 365 (O365) profile picture and caches it</li>
                                 <li>Imposes Role Access Control for WordPress based on Office 365 or Azure AD <strong>Security groups</strong></li>
                                 <li>Automated WordPress Role Assignment using a <strong>configurable mapping</strong> between Office 365 or Azure AD Security groups and WordPress roles</li>
-                                <li>Plain WP_CONFIG configuration (improves the overall <strong>performance</strong> of your website)</li>
-                                <li>Integration with <strong>Microsoft Graph</strong></li>
+                                <li>Plain wp-config.php configuration (improves the overall <strong>performance</strong> of your website)</li>
                                 <li>One <strong>support</strong> item included</li>
                             </ul>
                         </div>

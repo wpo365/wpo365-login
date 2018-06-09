@@ -22,7 +22,7 @@
         // This is where your data is stored in the database and also becomes your global variable name.
         'display_name'         => 'Wordpress + Office 365 - login',
         // Name that appears at the top of your panel
-        'display_version'      => '4.1',
+        'display_version'      => '4.2',
         // Version that appears at the top of your panel
         'menu_type'            => 'menu',
         //Specify if the admin menu should appear or not. Options: menu or submenu (Under appearance only)
@@ -167,29 +167,9 @@
         //'icon'   => 'el el-home',
         'fields' => array(
             array(
-                'id'       => 'application_name',
-                'type'     => 'text',
-                'title'    => __( 'AAD Application Name', 'wpo-365-options' ),
-                'desc'     => __( 'Name used to register the App in Azure Active Directory', 'wpo-365-options' ),
-                //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
-                'hint'     => array(
-                    'content' => 'Click Azure Active Directory, click App Registrations, choose the application and locate its name.',
-                )
-           ),
-           array(
-                'id'       => 'tenant_id',
-                'type'     => 'text',
-                'title'    => __( 'AAD Tenant ID', 'wpo-365-options' ),
-                'desc'     => __( 'Azure Active Directory Identifier', 'wpo-365-options' ),
-                //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
-                'hint'     => array(
-                    'content' => 'The {tenant} value in the path of the request can be used to control who can sign into the application. The allowed values are tenant identifiers, for example, 8eaef023-2b34-4da1-9baa-8bc8c9d6a490 or contoso.onmicrosoft.com or common for tenant-independent tokens.',
-                )
-            ),
-            array(
                 'id'       => 'application_id',
                 'type'     => 'text',
-                'title'    => __( 'AAD Application ID', 'wpo-365-options' ),
+                'title'    => __( 'AAD Application ID', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/azure-ad-application-id/"><strong>help</strong></a>]',
                 'desc'     => __( 'The Application Id assigned to your app when you registered it with Azure AD', 'wpo-365-options' ),
                 //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
                 'hint'     => array(
@@ -197,26 +177,26 @@
                 )
            ),
            array(
+                'id'       => 'tenant_id',
+                'type'     => 'text',
+                'title'    => __( 'AAD Tenant ID', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/azure-ad-tenant-id/"><strong>help</strong></a>]',
+                'desc'     => __( 'Azure Active Directory Identifier', 'wpo-365-options' ),
+                //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
+                'hint'     => array(
+                    'content' => 'The {tenant} value in the path of the request can be used to control who can sign into the application. The allowed values are tenant identifiers, for example, 8eaef023-2b34-4da1-9baa-8bc8c9d6a490 or contoso.onmicrosoft.com or common for tenant-independent tokens.',
+                )
+            ),
+            array(
                 'id'       => 'aad_resource_uri',
                 'type'     => 'text',
-                'title'    => __( 'Default resource ID', 'wpo-365-options' ),
+                'title'    => __( 'Default resource ID', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/default-resource-id/"><strong>help</strong></a>]',
                 'desc'     => __( 'The application will by default request access to Windows Azure Active Directory to sign in and read profile data if you leave this field unchanged', 'wpo-365-options' ),
                 'default'     => '00000002-0000-0000-c000-000000000000'
             ),
             array(
-                'id'       => 'application_uri',
-                'type'     => 'text',
-                'title'    => __( 'AAD Application ID URI', 'wpo-365-options' ),
-                'desc'     => __( 'ONLY USED FOR ADVANCED INTEGRATION SCENARIOS - The Application ID URI assigned to your app when you registered it with Azure AD', 'wpo-365-options' ),
-                //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
-                'hint'     => array(
-                    'content' => 'You can find this in the Azure Portal. Click Azure Active Directory, click App Registrations, choose the application and locate the Application ID URI on the application page.',
-                )
-            ),
-            array(
                 'id'       => 'application_secret',
                 'type'     => 'text',
-                'title'    => __( 'Application Secret', 'wpo-365-options' ),
+                'title'    => __( 'Application Secret', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/application-secret/"><strong>help</strong></a>]',
                 'desc'     => __( 'ONLY USED FOR ADVANCED INTEGRATION SCENARIOS - The (AAD) Application secret you created as part of the Azure Active Directory configuration', 'wpo-365-options' ),
                 //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
                 //'hint'     => array(
@@ -226,7 +206,7 @@
             array(
                 'id'       => 'scope',
                 'type'     => 'text',
-                'title'    => __( 'Scope', 'wpo-365-options' ),
+                'title'    => __( 'Scope', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/scope-open-connect-id/"><strong>help</strong></a>]',
                 'desc'     => __( 'A space-separated list of scopes', 'wpo-365-options' ),
                 //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
                 'hint'     => array(
@@ -237,7 +217,7 @@
             array(
                 'id'       => 'redirect_url',
                 'type'     => 'text',
-                'title'    => __( 'Redirect URI', 'wpo-365-options' ),
+                'title'    => __( 'Redirect URI', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/redirect-uri/"><strong>help</strong></a>]',
                 'desc'     => __( 'The redirect_uri of your app (for Wordpress default setup, append a slash at the end e.g. https://www.intra.net/wp-admin/ (click "?" for important information when your hoster offers advanced caching services)', 'wpo-365-options' ),
                 //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
                 'hint'     => array(
@@ -247,14 +227,14 @@
             array(
                 'id'       => 'nonce_secret',
                 'type'     => 'text',
-                'title'    => __( 'Nonce secret', 'wpo-365-options' ),
+                'title'    => __( 'Nonce secret', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/nonce-secret/"><strong>help</strong></a>]',
                 'desc'     => __( 'A nonce is a number used once and is used to test the integrity of requests sent to Microsoft' ),
                 'default'  => 'YOUR_NONCE_SECRET',
             ),
             array(
                 'id'       => 'pages_blacklist',
                 'type'     => 'textarea',
-                'title'    => __( 'Pages Blacklist', 'wpo-365-options' ),
+                'title'    => __( 'Pages Blacklist', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/pages-blacklist/"><strong>help</strong></a>]',
                 'desc'     => __( 'Semi colon separated list of page file names', 'wpo-365-options' ),
                 //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
                 'hint'     => array(
@@ -265,7 +245,7 @@
             array(
                 'id'       => 'domain_whitelist',
                 'type'     => 'textarea',
-                'title'    => __( 'Domain whitelist', 'wpo-365-options' ),
+                'title'    => __( 'Domain whitelist', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/domain-whitelist-wordpress-multisite/"><strong>help</strong></a>]',
                 'desc'     => __( 'Semi colon separated list of domain names', 'wpo-365-options' ),
                 //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
                 'hint'     => array(
@@ -275,17 +255,10 @@
             array(
                 'id'       => 'session_duration',
                 'type'     => 'text',
-                'title'    => __( 'Duration of a session', 'wpo-365-options' ),
+                'title'    => __( 'Duration of a session', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/duration-of-a-session/"><strong>help</strong></a>]',
                 'desc'     => __( 'Duration in seconds until a user\'s session expires and the user needs to re-authenticate (default one hour)' ),
                 'default'  => '3600',
             ),
-            array(
-                'id'       => 'refresh_duration',
-                'type'     => 'text',
-                'title'    => __( 'Duration before refreshing tokens', 'wpo-365-options' ),
-                'desc'     => __( 'Duration in seconds until a user\'s refresh token expires and a new refresh token is required (default one week)' ),
-                'default'  => '604800',
-            )
         )
     ) );
 
@@ -298,7 +271,7 @@
             array(
                 'id'       => 'block_email_change',
                 'type'     => 'checkbox',
-                'title'    => __( 'User cannot change email address' ),
+                'title'    => __( 'User cannot change email address' ) . ' [<a target="_blank" href="https://www.wpo365.com/user-cannot-change-email-address/"><strong>help</strong></a>]',
                 'subtitle' => __( '', 'wpo-365-options' ),
                 'desc'     => __( 'Intercepts a user trying to change his or her email address and reverts that action', 'wpo-365-options' ),
                 'default'  => '1',
@@ -306,7 +279,7 @@
             array(
                 'id'       => 'block_password_change',
                 'type'     => 'checkbox',
-                'title'    => __( 'User cannot change password' ),
+                'title'    => __( 'User cannot change password' ) . ' [<a target="_blank" href="https://www.wpo365.com/user-cannot-change-password/"><strong>help</strong></a>]',
                 'subtitle' => __( '', 'wpo-365-options' ),
                 'desc'     => __( 'Prevents a user who is not an administrator from changing his or her password', 'wpo-365-options' ),
                 'default'  => '1',
@@ -314,7 +287,7 @@
             array(
                 'id'       => 'auth_scenario',
                 'type'     => 'select',
-                'title'    => __( 'Authentication scenario', 'wpo-365-options' ),
+                'title'    => __( 'Authentication scenario', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/authentication-scenario/"><strong>help</strong></a>]',
                 'subtitle' => __( 'Select \'Intranet\' to secure both Wordpress front- and backend and \'Internet\' to secure only the backend with WPO365-login.', 'wpo-365-options' ),
                 //'desc'     => __( 'This is the description field, again good for additional info.', 'redux-framework-demo' ),
                 'options'  => array(
@@ -326,7 +299,7 @@
             array(
                 'id'       => 'create_and_add_users',
                 'type'     => 'checkbox',
-                'title'    => __( 'Create new users', 'wpo-365-options' ),
+                'title'    => __( 'Create new users', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/create-new-users/"><strong>help</strong></a>]',
                 'desc'     => __( 'Automatically create a Wordpress user' ),
                 'hint'     => array(
                     'content' => __( 'When checked the plugin will try and find an existing Wordpress user given the user\'s email address and if not found create a new user. In case of Wordpress Multisite the user will also be added to the site he/she tried to access. If unchecked the user with a given email address must already be (manually) created prior to that user logging in.', 'wpo-365-options' ),
@@ -336,7 +309,7 @@
             array(
                 'id'       => 'new_usr_default_role',
                 'type'     => 'text',
-                'title'    => __( 'Default role main site', 'wpo-365-options' ),
+                'title'    => __( 'Default role main site', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/default-role-main-site/"><strong>help</strong></a>]',
                 'desc'     => __( 'Role assigned in the main when creating a new Wordpress user to match an Office 365 user' ),
                 'default'  => 'subscriber',
                 'hint'     => array(
@@ -346,7 +319,7 @@
             array(
                 'id'       => 'mu_new_usr_default_role',
                 'type'     => 'text',
-                'title'    => __( 'Default role sub site', 'wpo-365-options' ),
+                'title'    => __( 'Default role sub site', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/default-role-sub-site/"><strong>help</strong></a>]',
                 'desc'     => __( 'ONLY USED FOR MULTISITE INSTALLATIONS - Role assigned in a subsite when creating a new Wordpress user to match an Office 365 user' ),
                 'default'  => 'author',
                 'hint'     => array(
@@ -365,7 +338,7 @@
             array(
                 'id'       => 'debug_mode',
                 'type'     => 'checkbox',
-                'title'    => __( 'Enable debug mode' ),
+                'title'    => __( 'Enable debug mode' ) . ' [<a target="_blank" href="https://www.wpo365.com/enable-debug-mode/"><strong>help</strong></a>]',
                 'subtitle' => __( '', 'wpo-365-options' ),
                 'desc'     => __( 'Enable debug mode so the plugin will output verbose information to the Wordpress debug.log file', 'wpo-365-options' ),
                 'default'  => '0',
@@ -373,7 +346,7 @@
             array(
                 'id'       => 'skip_host_verification',
                 'type'     => 'checkbox',
-                'title'    => __( 'Skip SSL host verification' ),
+                'title'    => __( 'Skip SSL host verification' ) . ' [<a target="_blank" href="https://www.wpo365.com/skip-ssl-host-verification/"><strong>help</strong></a>]',
                 'subtitle' => __( '', 'wpo-365-options' ),
                 'desc'     => __( 'Enable SSL host verification to improve overall security and you are sure the required server-side dependencies for CURL to verify an SSL host are installed', 'wpo-365-options' ),
                 'default'  => '1',
@@ -381,7 +354,7 @@
             array(
                 'id'       => 'debug_log_id_token',
                 'type'     => 'checkbox',
-                'title'    => __( 'Log id token' ),
+                'title'    => __( 'Log id token' ) . ' [<a target="_blank" href="https://www.wpo365.com/log-id-token/"><strong>help</strong></a>]',
                 'subtitle' => __( '', 'wpo-365-options' ),
                 'desc'     => __( 'When enabled the plugin will write the id token into the Wordpress log file when debug logging is enabled', 'wpo-365-options' ),
                 'default'  => '0',
@@ -389,7 +362,7 @@
             array(
                 'id'       => 'leeway',
                 'type'     => 'text',
-                'title'    => __( 'Leeway time', 'wpo-365-options' ),
+                'title'    => __( 'Leeway time', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/leeway-time/"><strong>help</strong></a>]',
                 'desc'     => __( 'Extra (leeway) time in seconds to account for clock skew when checking the id token validity', 'wpo-365-options' ),
                 'default'  => '300',
             ),

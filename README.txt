@@ -1,10 +1,10 @@
 === Wordpress + Office 365 login ===
 Contributors: wpo365
-Donate link: https://www.wpo365.com
+Donate link: https://www.wpo365.com/campaigns/donate/
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.9
-Stable tag: 4.1
+Stable tag: 4.2
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -30,18 +30,21 @@ Wordpress + Office 365 login allows Microsoft O365 users to seamlessly and secur
 The [premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/) of the plugin offers all of the above, plus:
 
 - Create and update unlimited Office 365 users
+- The ability to [quickly rollout new users to WordPress](https://www.wpo365.com/synchronize-users-between-office-365-and-wordpress/) from Active Directory
+- [Disable user access to WordPress](https://www.wpo365.com/synchronize-users-between-office-365-and-wordpress/) for users that are disabled in your tenant / domain
 - Enhanced security features e.g. Brute Force Attacks prevention
-- Enhances a user’s WordPress profile with information from Microsoft Graph e.g. office location, job title, mobile and business phone numbers
-- Replaces default WordPress avatar for a user with the Office 365 (O365) profile picture and caches it
+- Enhances a user’s [WordPress profile with information from Microsoft Graph](https://www.wpo365.com/configuring-office-365-profile-and-avatar-synchronization/) e.g. office location, job title, mobile and business phone numbers
+- Replaces default WordPress avatar for a user with the [Office 365 (O365) profile picture](https://www.wpo365.com/configuring-office-365-profile-and-avatar-synchronization/) and caches it
 - Access Control based on users being a member of either an Office 365 or an Azure AD Security group
 - Automated WordPress Role Assignment based on a configurable mapping between Office 365 or Azure AD Security groups and WordPress roles
-- Plain WP_CONFIG configuration (improves the overall performance of your website)
+- Plain wp-config.php configuration (improves the overall performance of your website)
 - One support item included
 
 Also have a look at [this post](https://www.wpo365.com/wpo365-login-features-and-authentication-flow/) if you need help to decide whether or not our plugin can help you improve the user experience when user try to gain accessing to your corporate intranet or internet WordPress site.
 
 = Prerequisites =
 
+- Make sure that you have disabled caching for your Website in case your website is an intranet and access to WP Admin and all pubished pages and posts requires authentication. With caching enabled, the plugin may not work as expected
 - We have tested our plugin with Wordpress 4.8.1 and PHP 5.5.0 and 5.6.25
 - You need to be (Office 365) Tenant Administrator to configure both Azure Active Directory and the plugin
 - [Redux Framework Plugin](https://de.wordpress.org/plugins/redux-framework/) to configure the Plugin’s option (a warning will be shown upon plugin activation)
@@ -70,8 +73,8 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 == Upgrade Notice ==
 
-= 4.1 =
-* Fixed "Undefined index page" notice visible on the admin page
+= 4.2 =
+* Added extra help links to the Redux Options page for easier installation
 
 == Changelog ==
 
@@ -223,3 +226,6 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 = 4.1 =
 * Fixed "Undefined index page" notice visible on the admin page
+
+= 4.2 =
+* Added extra help links to the Redux Options page for easier installation
