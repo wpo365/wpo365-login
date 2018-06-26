@@ -30,8 +30,10 @@ Wordpress + Office 365 login allows Microsoft O365 users to seamlessly and secur
 The [premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/) of the plugin offers all of the above, plus:
 
 - Create and update unlimited Office 365 users
+- Support for (granting customers, partners etc. access to your (extranet))[https://www.wpo365.com/wordpress-extranet/] website
 - The ability to [quickly rollout new users to WordPress](https://www.wpo365.com/synchronize-users-between-office-365-and-wordpress/) from Active Directory
 - [Disable user access to WordPress](https://www.wpo365.com/synchronize-users-between-office-365-and-wordpress/) for users that are disabled in your tenant / domain
+- [Log out users from Office 365](https://www.wpo365.com/office-365-logout/) when they log out from your WordPress website
 - Enhanced security features e.g. Brute Force Attacks prevention
 - Enhances a user’s [WordPress profile with information from Microsoft Graph](https://www.wpo365.com/configuring-office-365-profile-and-avatar-synchronization/) e.g. office location, job title, mobile and business phone numbers
 - Replaces default WordPress avatar for a user with the [Office 365 (O365) profile picture](https://www.wpo365.com/configuring-office-365-profile-and-avatar-synchronization/) and caches it
