@@ -4,7 +4,7 @@ Donate link: https://www.wpo365.com/campaigns/donate/
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.9
-Stable tag: 4.2
+Stable tag: 5.0
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
