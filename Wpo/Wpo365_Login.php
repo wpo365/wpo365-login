@@ -37,8 +37,6 @@
 
             private function on_load() {
 
-                Helpers::disable_spo_plugin();
-
                 include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
                 require_once( $GLOBALS[ 'WPO365_PLUGIN_DIR' ] . '/Wpo/Util/Required_Plugins.php' );
                 require_once( $GLOBALS[ 'WPO365_PLUGIN_DIR' ] . '/Configs/Required_Plugins_Config.php' );
@@ -46,6 +44,9 @@
 
             private function add_actions() {
 
+                // Ensure old version of spo plugin is de-activated
+                add_action( 'plugins_loaded', '\Wpo\Util\Helpers::disable_spo_plugin', 1 );
+                
                 // Ensure session is valid and remains valid
                 add_action( 'destroy_wpo365_session', '\Wpo\Aad\Auth::destroy_session' );
 

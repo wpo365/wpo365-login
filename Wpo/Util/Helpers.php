@@ -571,40 +571,38 @@
              */
             public static function disable_spo_plugin() {
 
-                $plugins_dir = dirname( $GLOBALS[ 'WPO365_PLUGIN_DIR' ] );
-                $spo_plugins_file = $plugins_dir . '/wpo365-spo/wpo365-spo.php';
+                if ( ! function_exists( 'get_plugins' ) ) {
 
-                if( true === self::old_spo_plugin_exists( $spo_plugins_file ) ) {
+                    require_once ABSPATH . 'wp-admin/includes/plugin.php';
+                }
+            
+                $plugins = get_plugins();
 
-                    include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-                    deactivate_plugins( $spo_plugins_file );
+                $old_spo_plugin_exists = array_key_exists( 'wpo365-spo/wpo365-spo.php', $plugins ) 
+                    && array_key_exists( 'Version', $plugins[ 'wpo365-spo/wpo365-spo.php' ] ) 
+                    && floatval( $plugins[ 'wpo365-spo/wpo365-spo.php' ][ 'Version' ] ) < 1;
 
-                    add_action( 'admin_notices', function() {
-                        
-                        echo '<div class="notice notice-error"><p>' . __( 'The WordPress + Office 365 login plugin has automatically de-activated an older version of our WordPress + Office 365 SharePoint plugin. Please upgrade to the latest version of this plugin <a href="https://wordpress.org/plugins/wpo365-spo/">or acquire the premium version</a> to avoid compatibility issues. This message will automatically disappear as soon as you have installed version 1.0 or higher of our SharePoint (free or premium) plugin.' ) . '</p></div>';
-                    }, 10, 0 );
+                if( true === $old_spo_plugin_exists ) {
+
+                    deactivate_plugins( dirname( $GLOBALS[ 'WPO365_PLUGIN_DIR' ] ) . '/wpo365-spo/wpo365-spo.php' );
+                    self::show_incompatibility_warning();
                 }                
             }
 
-            private static function old_spo_plugin_exists( $spo_plugins_file ) {
+            /**
+             * Shows a warning that the plugin is not working correctly until the latest version of the
+             * wpo365-login is installed
+             * 
+             * @since 5.0
+             * 
+             * @return void
+             */
+            private static function show_incompatibility_warning() {
 
-                try {
+                add_action( 'admin_notices', function() {
 
-                    if( file_exists( $spo_plugins_file ) ) {
-
-                        $version = get_site_option( 'wpo365-spo-version', null );
-
-                        if( !empty( $version ) && floatval( $version ) < 1 ) {
-
-                            return true;
-                        }
-                    }
-                }
-                catch(Exception $e) {
-
-                    Logger::write_log( 'ERROR', 'Error occurred whilst trying to deactivate older version of wpo365-spo plugin' );
-                } 
-                return false;
+                    echo '<div class="notice notice-error"><p>' . __( 'Please install version 1.0 or higher of the <strong>WPO365-spo (SharePoint)</strong> plugin (currently disabled)' ) . '</p></div>';
+                }, 10, 0 );
             }
         }
     }
