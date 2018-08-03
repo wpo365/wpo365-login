@@ -448,13 +448,40 @@
              *
              * @since 2.5
              *
+             * @return  Current URL as string without query string
+             */
+            public static function check_version() {
+                
+                // Get plugin version from db
+                $plugin_db_version = get_site_option( 'wpo365-login-version' );
+
+                // Add new option if not yet existing
+                if( false === $plugin_db_version ) {
+
+                    add_site_option( 'wpo365-login-version', $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] );
+                    Helpers::track( 'install' );
+                    return;
+
+                }
+                // Compare plugin version with db version and track in case of update
+                elseif( $plugin_db_version != $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] ) {
+
+                    update_site_option( 'wpo365-login-version', $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] );
+                    Helpers::track( 'update' );
+                }
+            }
+
+            /**
+             * Removes query string from string ( there may be an incompatibility with URL rewrite )
+             *
+             * @since 2.5
+             *
              * @param   string  Name of event to track (default is install)
              * @return  Current URL as string without query string
              */
-            public static function track( $event = 'install' ) {
+            public static function track( $event ) {
 
                 $plugin_version = $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ];
-                $event  = $event == NULL ? 'install' : $event;
                 $event .= '_login';
 
                 $ga = "https://www.google-analytics.com/collect?v=1&tid=UA-5623266-11&aip=1&cid=bb923bfc-cae8-11e7-abc4-cec278b6b50a&t=event&ec=alm&ea=$event&el=wpo365-login_$plugin_version";
@@ -476,34 +503,6 @@
                 }
                 
                 curl_close( $curl );
-
-            }
-
-            /**
-             * Removes query string from string ( there may be an incompatibility with URL rewrite )
-             *
-             * @since 2.5
-             *
-             * @return  Current URL as string without query string
-             */
-            public static function check_version() {
-                
-                // Get plugin version from db
-                $plugin_db_version = get_site_option( 'wpo365-login-version' );
-
-                // Add new option if not yet existing
-                if( false === $plugin_db_version ) {
-
-                    add_site_option( 'wpo365-login-version', $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] );
-
-                }
-                // Compare plugin version with db version and track in case of update
-                elseif( $plugin_db_version != $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] ) {
-
-                    Helpers::track( 'update' );
-                    update_site_option( 'wpo365-login-version', $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] );
-
-                }
 
             }
 
