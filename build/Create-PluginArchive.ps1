@@ -34,9 +34,11 @@ ForEach($item in $config.files) {
 
 Write-Host "Creating plugin archive $pluginArchive"
 
-Add-Type -Assembly System.IO.Compression.FileSystem
-$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
-[System.IO.Compression.ZipFile]::CreateFromDirectory($tmpFolder, $pluginArchive, $compressionLevel, $false)
+# Add-Type -Assembly System.IO.Compression.FileSystem
+# $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
+# [System.IO.Compression.ZipFile]::CreateFromDirectory($tmpFolder, $pluginArchive, $compressionLevel, $false)
+
+& "C:\Program Files\7-Zip\7z.exe" -mx=9 a $pluginArchive $tmpFolder
 
 Write-Host "Cleaning temporary 'dist\$($config.slug)' folder"
 Remove-Item $tmpFolder -Recurse -Force
