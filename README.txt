@@ -73,12 +73,10 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 == Screenshots ==
 
-
-
 == Upgrade Notice ==
 
-= 4.2 =
-* Added extra help links to the Redux Options page for easier installation
+= 5.0 =
+* The SharePoint Online integration plugin (wpo365-spo) - when installed - will automatically be de-activated and must be updated to the latest version 1.0 immediately following this installation.
 
 == Changelog ==
 
