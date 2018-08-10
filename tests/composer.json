@@ -1,0 +1,7 @@
+{
+  "name": "wpo365/php-ut",
+  "description": "",
+  "require-dev": {
+    "phpunit/phpunit": "6.5.*"
+  }
+}

@@ -4,7 +4,7 @@ Donate link: https://www.wpo365.com/campaigns/donate/
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.9
-Stable tag: 4.2
+Stable tag: 5.0
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -75,8 +75,8 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 == Upgrade Notice ==
 
-= 4.2 =
-* Added extra help links to the Redux Options page for easier installation
+= 5.0 =
+* The SharePoint Online integration plugin (wpo365-spo) - when installed - will automatically be de-activated and must be updated to the latest version 1.0 immediately following this installation.
 
 == Changelog ==
 
@@ -231,3 +231,8 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 = 4.2 =
 * Added extra help links to the Redux Options page for easier installation
+
+= 5.0 =
+* Moved the JWT class into the Wpo namespace (to avoid class loading issues)
+* Added psr-4 type auto class loading
+* Code refactoring to allow for tighter integration e.g. with [SharePoint Online Plugin](https://wordpress.org/plugins/wpo365-spo/)
