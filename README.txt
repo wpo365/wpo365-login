@@ -73,6 +73,8 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 == Screenshots ==
 
+
+
 == Upgrade Notice ==
 
 = 4.2 =
@@ -235,4 +237,4 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 = 5.0 =
 * Moved the JWT class into the Wpo namespace (to avoid class loading issues)
 * Added psr-4 type auto class loading
-* Code refactoring to allow for the [SharePoint Online Plugin](https://wordpress.org/plugins/wpo365-spo/) and other extensions to re-use existing code base
+* Code refactoring to allow for tighter integration e.g. with [SharePoint Online Plugin](https://wordpress.org/plugins/wpo365-spo/)
