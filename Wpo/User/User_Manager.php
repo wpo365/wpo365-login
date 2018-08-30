@@ -41,16 +41,16 @@
                 }
 
                 // Translate id_token in a Wpo\User\User object
-                $usr = User::user_from_id_token( $decoded_id_token );
+                $wpo_usr = User::user_from_id_token( $decoded_id_token );
 
-                if( $usr == NULL ) {
+                if( $wpo_usr == NULL ) {
 
                     Logger::write_log( 'DEBUG', 'Could not retract UPN from id token' );
                     return false;
                     
                 }
 
-                $smtp_domain = Helpers::get_smtp_domain_from_email_address( $usr->email );
+                $smtp_domain = Helpers::get_smtp_domain_from_email_address( $wpo_usr->email );
 
                 // Check whether the user's domain is white listed (if empty this check is skipped)
                 $domain_white_list = !empty( $GLOBALS[ 'wpo365_options' ][ 'domain_whitelist' ] ) ? trim( $GLOBALS[ 'wpo365_options' ][ 'domain_whitelist' ] ) : '';
@@ -67,7 +67,12 @@
                 }
                 
                 // Try find an existing user by email
-                $wp_usr = get_user_by( 'email', $usr->email );
+                $wp_usr = empty( $wpo_usr->email ) ? false : get_user_by( 'email', $wpo_usr->email );
+
+                if( false === $wp_usr ) {
+
+                    $wp_usr = empty( $wpo_usr->upn ) ? false : get_user_by( 'login', $wpo_usr->upn );
+                }
 
                 // Get target site info
                 $site_info = Helpers::target_site_info( $_POST[ 'state' ] );
@@ -100,7 +105,7 @@
 
                         }
 
-                        $wp_usr = User_Manager::add_user( $usr );
+                        $wp_usr = User_Manager::add_user( $wpo_usr );
 
                     }
                     else {
@@ -292,7 +297,9 @@
                 $user_query = new \WP_User_Query( 
                     array(
                         'search'            => "*$smtp_domain",
-                        'search_columns'    => 'user_login',
+                        'search_columns'    => array( 
+                            'user_login' 
+                        ),
                     )
                 );
 
