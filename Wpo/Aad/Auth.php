@@ -53,15 +53,11 @@
                         wp_logout();
 
                         $login_url = wp_login_url( '', true );
-
+                        
                         $login_url = add_query_arg( 'login_errors', $login_error_code, $login_url );
-
-                        wp_redirect( $login_url );
-
-                        exit();
-
+                        
+                        Helpers::force_redirect( $login_url );
                 }
-                
             }
 
             /**
@@ -307,8 +303,7 @@
                 Logger::write_log( 'DEBUG', 'Getting fresh id and authorization tokens: ' . $authorizeUrl );
 
                 // Redirect to Microsoft Authorization Endpoint
-                wp_redirect( $authorizeUrl );
-                exit(); // exit after redirect
+                Helpers::force_redirect( $authorizeUrl );
             }
 
             /**
@@ -357,9 +352,7 @@
 
                 // User could log on and everything seems OK so let's restore his state
                 Logger::write_log( 'DEBUG', 'Redirecting to ' . $_POST[ 'state' ] );
-                wp_redirect( $_POST[ 'state' ] );
-                exit(); // Always exit after a redirect
-
+                Helpers::force_redirect( $_POST[ 'state' ] );
             }
 
             /**

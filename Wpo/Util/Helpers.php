@@ -12,6 +12,35 @@
         class Helpers {
             
             /**
+             * Checks whether headers are sent before trying to redirect and if sent falls
+             * back to an alternative method
+             * 
+             * @since 5.1
+             * 
+             * @param string $url URL to redirect to
+             * @return void
+             */
+            public static function force_redirect( $url ) {
+
+                if( headers_sent() ) {
+
+                    Logger::write_log( 'DEBUG', 'Headers sent when trying to redirect user to ' . $url );
+
+                    echo '<script type="text/javascript">';
+                    echo 'window.location.href="'. $url . '";';
+                    echo '</script>';
+                    echo '<noscript>';
+                    echo '<meta http-equiv="refresh" content="0;url=' . $url . '" />';
+                    echo '</noscript>';
+                    
+                    exit();
+                }
+
+                wp_redirect( $url );
+                exit();
+            }
+            
+            /**
              * Prevents wordpress from replacing &nbps; and \n with <p> and <br> inside wpo365 shortcodes
              * 
              * @since 2.0
