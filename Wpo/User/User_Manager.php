@@ -186,7 +186,6 @@
                 $userdata = array( 
                     'user_login'    => $usr->upn,
                     'user_pass'     => uniqid(),
-                    'user_nicename' => $usr->full_name,
                     'displayname'   => $usr->full_name,
                     'user_email'    => $usr->email,
                     'first_name'    => $usr->first_name,
