@@ -117,18 +117,38 @@
 
                 }
                 
-                Logger::write_log( 'DEBUG', 'Validating session for page ' . strtolower( basename( $_SERVER[ 'PHP_SELF' ] ) ) );
+                Logger::write_log( 'DEBUG', 'Validating session for path ' . strtolower( $_SERVER[ 'REQUEST_URI' ] ) );
                 
                 // Check if current page is blacklisted and can be skipped
                 if( isset( $GLOBALS[ 'wpo365_options' ] )
-                    && !empty( $GLOBALS[ 'wpo365_options' ][ 'pages_blacklist' ] ) 
-                    && strpos( strtolower( $GLOBALS[ 'wpo365_options' ][ 'pages_blacklist' ] ), 
-                    strtolower( basename( $_SERVER[ 'PHP_SELF' ] ) ) ) !== false ) {
+                    && !empty( $GLOBALS[ 'wpo365_options' ][ 'pages_blacklist' ] ) ) {
 
-                    Logger::write_log( 'DEBUG', 'Cancelling session validation for page ' . strtolower( basename( $_SERVER[ 'PHP_SELF' ] ) ) );
+                        $black_listed_pages = explode( ';', strtolower( trim( $GLOBALS[ 'wpo365_options' ][ 'pages_blacklist' ] ) ) );
+                        $request_uri = strtolower( $_SERVER[ 'REQUEST_URI' ] );
 
-                    return;
+                        foreach( $black_listed_pages as $black_listed_page ) {
 
+                            if( empty( $black_listed_page ) ) {
+
+                                continue;
+                            }
+                            
+                            // Correction after the plugin switched from basename to path based comparison
+                            $starts_with = substr( $black_listed_page, 0, 1);
+                            $black_listed_page = $starts_with == '/' || $starts_with == '?' ? $black_listed_page : '/' . $black_listed_page;
+                            
+                            // Filter out any attempt to illegally bypass authentication
+                            if( strpos( $request_uri, '?/' ) !== false ) {
+
+                                Logger::write_log( 'ERROR', 'Serious attempt to try to bypass authentication using an illegal query string combination "?/" (path used: ' . $request_uri . ')');
+                                break;
+                            }
+                            elseif( strpos( $request_uri, $black_listed_page ) !== false ) {
+
+                                Logger::write_log( 'DEBUG', 'Found [' . $black_listed_page . '] thus cancelling session validation for path ' . $request_uri );
+                                return;
+                            }
+                        }
                 }
 
                 $wpo_auth = Auth::get_unique_user_meta( Auth::USR_META_WPO365_AUTH );
