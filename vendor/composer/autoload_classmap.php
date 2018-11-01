@@ -6,4 +6,16 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Wpo\\API\\Services' => $baseDir . '/Wpo/API/Services.php',
+    'Wpo\\Aad\\Auth' => $baseDir . '/Wpo/Aad/Auth.php',
+    'Wpo\\Firebase\\JWT\\BeforeValidException' => $baseDir . '/Wpo/Firebase/JWT/BeforeValidException.php',
+    'Wpo\\Firebase\\JWT\\ExpiredException' => $baseDir . '/Wpo/Firebase/JWT/ExpiredException.php',
+    'Wpo\\Firebase\\JWT\\JWT' => $baseDir . '/Wpo/Firebase/JWT/JWT.php',
+    'Wpo\\Firebase\\JWT\\SignatureInvalidException' => $baseDir . '/Wpo/Firebase/JWT/SignatureInvalidException.php',
+    'Wpo\\User\\User' => $baseDir . '/Wpo/User/User.php',
+    'Wpo\\User\\User_Manager' => $baseDir . '/Wpo/User/User_Manager.php',
+    'Wpo\\Util\\Error_Handler' => $baseDir . '/Wpo/Util/Error_Handler.php',
+    'Wpo\\Util\\Helpers' => $baseDir . '/Wpo/Util/Helpers.php',
+    'Wpo\\Util\\Logger' => $baseDir . '/Wpo/Util/Logger.php',
+    'Wpo\\Wpo365_Login' => $baseDir . '/Wpo/Wpo365_Login.php',
 );

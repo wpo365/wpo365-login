@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInita7dbd4990e84a0cd34548ecfecc7bae9
+class ComposerStaticInitc7f7f23f4f95c0eb05bf7d8f7d516fbc
 {
     public static $prefixLengthsPsr4 = array (
         'W' => 
@@ -13,6 +13,7 @@ class ComposerStaticInita7dbd4990e84a0cd34548ecfecc7bae9
             'Wpo\\User\\' => 9,
             'Wpo\\Firebase\\JWT\\' => 17,
             'Wpo\\Aad\\' => 8,
+            'Wpo\\API\\' => 8,
             'Wpo\\' => 4,
         ),
     );
@@ -34,17 +35,37 @@ class ComposerStaticInita7dbd4990e84a0cd34548ecfecc7bae9
         array (
             0 => __DIR__ . '/../..' . '/Wpo/Aad',
         ),
+        'Wpo\\API\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/Wpo/API',
+        ),
         'Wpo\\' => 
         array (
             0 => __DIR__ . '/../..' . '/Wpo',
         ),
     );
 
+    public static $classMap = array (
+        'Wpo\\API\\Services' => __DIR__ . '/../..' . '/Wpo/API/Services.php',
+        'Wpo\\Aad\\Auth' => __DIR__ . '/../..' . '/Wpo/Aad/Auth.php',
+        'Wpo\\Firebase\\JWT\\BeforeValidException' => __DIR__ . '/../..' . '/Wpo/Firebase/JWT/BeforeValidException.php',
+        'Wpo\\Firebase\\JWT\\ExpiredException' => __DIR__ . '/../..' . '/Wpo/Firebase/JWT/ExpiredException.php',
+        'Wpo\\Firebase\\JWT\\JWT' => __DIR__ . '/../..' . '/Wpo/Firebase/JWT/JWT.php',
+        'Wpo\\Firebase\\JWT\\SignatureInvalidException' => __DIR__ . '/../..' . '/Wpo/Firebase/JWT/SignatureInvalidException.php',
+        'Wpo\\User\\User' => __DIR__ . '/../..' . '/Wpo/User/User.php',
+        'Wpo\\User\\User_Manager' => __DIR__ . '/../..' . '/Wpo/User/User_Manager.php',
+        'Wpo\\Util\\Error_Handler' => __DIR__ . '/../..' . '/Wpo/Util/Error_Handler.php',
+        'Wpo\\Util\\Helpers' => __DIR__ . '/../..' . '/Wpo/Util/Helpers.php',
+        'Wpo\\Util\\Logger' => __DIR__ . '/../..' . '/Wpo/Util/Logger.php',
+        'Wpo\\Wpo365_Login' => __DIR__ . '/../..' . '/Wpo/Wpo365_Login.php',
+    );
+
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInita7dbd4990e84a0cd34548ecfecc7bae9::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInita7dbd4990e84a0cd34548ecfecc7bae9::$prefixDirsPsr4;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitc7f7f23f4f95c0eb05bf7d8f7d516fbc::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitc7f7f23f4f95c0eb05bf7d8f7d516fbc::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitc7f7f23f4f95c0eb05bf7d8f7d516fbc::$classMap;
 
         }, null, ClassLoader::class);
     }
