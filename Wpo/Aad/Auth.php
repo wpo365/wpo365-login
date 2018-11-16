@@ -633,8 +633,9 @@
              * @return  boolean     True if validation should be skipped, otherwise false.
              */
             private static function skip_authentication() {
-                // Check is scenario is 'internet' and validation of current page can be skipped
-                if( !is_admin() && Helpers::get_global_var( 'WPO_AUTH_SCENARIO' ) == 2 ) {
+                $scenario = Helpers::get_global_var( 'WPO_AUTH_SCENARIO' );
+
+                if( !is_admin() && !is_wp_error( $scenario ) && $scenario == 2 ) {
                         Logger::write_log( 'DEBUG', 'Cancelling session validation for page ' . strtolower( basename( $_SERVER[ 'PHP_SELF' ] ) ) . ' because selected scenario is \'Internet\'' );
                         return true;
                 }

@@ -1,19 +1,8 @@
 {
-    "config": {
-        "slug": "wpo365-login",
-        "folders": [
-            "Configs",
-            "languages",
-            "vendor",
-            "Wpo"
-        ],
-        "files": [
-            "license.txt",
-            "README.txt",
-            "wpo365-login.php"
-        ],
-        "copyTo": [
-            "C:\\Projects\\WPO365\\backup\\new"
-        ]
-    }
+  "config": {
+    "slug": "wpo365-login",
+    "folders": ["Configs", "languages", "vendor", "Wpo", "templates"],
+    "files": ["license.txt", "README.txt", "wpo365-login.php"],
+    "copyTo": ["C:\\Projects\\WPO365\\backup\\new"]
+  }
 }

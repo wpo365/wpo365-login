@@ -48,8 +48,8 @@
              */
             public static function ensure_short_codes() {
 
-                if( !shortcode_exists( 'wpo365fx-app' ) )
-                    add_shortcode( 'wpo365fx-app', '\Wpo\Util\Helpers::add_wpo365fx_app_shortcode' );
+                if( !shortcode_exists( 'pintra' ) )
+                    add_shortcode( 'pintra', '\Wpo\Util\Helpers::add_pintra_shortcode' );
             }
 
             /**
@@ -61,7 +61,7 @@
              * @param string content found in between the short code start and end tag
              * @param string text domain
              */
-            public static function add_wpo365fx_app_shortcode( $atts = array(), $content = null, $tag = '' ) {
+            public static function add_pintra_shortcode( $atts = array(), $content = null, $tag = '' ) {
                 $atts = array_change_key_case( (array)$atts, CASE_LOWER);
                 $props = '[]';
                 
@@ -79,8 +79,10 @@
                         $props = json_encode( $result );
                 }
 
+                $script_url = isset( $atts[ 'script_url' ] ) ? $atts[ 'script_url' ] : '';
+
                 ob_start();
-                include( $GLOBALS[ 'WPO365_PLUGIN_DIR' ] . '/templates/wpo365fx_app.php' );
+                include( $GLOBALS[ 'WPO365_PLUGIN_DIR' ] . '/templates/pintra.php' );
                 $content = ob_get_clean();
                 return $content;
             }
