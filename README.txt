@@ -1,10 +1,9 @@
 === Wordpress + Office 365 login ===
 Contributors: wpo365
-Donate link: https://www.wpo365.com/campaigns/donate/
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.9
-Stable tag: 5.3
+Stable tag: 6.0
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -15,34 +14,41 @@ Wordpress + Office 365 login allows Microsoft O365 users to seamlessly and secur
 
 = Plugin Features =
 
-- As a Wordpress Administrator you can choose between two scenarios: 'Intranet' or 'Internet'.
-- When the 'Intranet' scenario is selected, our plugin will secure both Wordpress front- and backend and will try to verify whether the user can successfully authenticate him or herself with Microsoft Azure Active Directory. If this is the case the user is granted access to page initially requested or else the user is redirected to the default Wordpress login page.
-- On the other hand, when the 'Internet' scenario is selected and the user requests an ordinary (front-end) Wordpress post or page, authentication is omitted. Only when the user requests a page from the backend e.g. /wp-admin the plugin will try and authenticate the user using Azure Active Directory.
-- In both scenarios, users will be automatically logged on after they have successfully authenticated with Azure Active Directory / Office 365
-- And in case the user does so for the very first time, the plugin will create a corresponding new WordPress user for the first three Office 365 users
-- Still, when a user would navigate to the default Wordpress login page, he or she can still log on using a Wordpress-only account. This maybe desirable for System Administrators to log on independently from any subsystem such as Azure Active Directory.
-- To keep things save, the plugin will by default prevent Office 365 users to change their email address.
-- The plugin will also prevent Office 365 users to request a new password.
-- After a certain time - by default 1 hour - the plugin will try and refresh the initial authentication.
+== User Registration ==
 
-= Premium Features =
+- Register a new WordPress user upon successful authentication [[details | configuration]](https://www.wpo365.com/wpo365-login-features-and-authentication-flow/)
+- Enrich a user's WordPress user profile with information from Microsoft Graph e.g. Job Title, Contact Details and Office Location ([premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/)) [[details | configuration]](https://www.wpo365.com/configuring-office-365-profile-and-avatar-synchronization#extra_user_profile_fields)
+- Automatically assign WordPress user role(s) based on Azure AD group membership(s) when a user signs into your website ([premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/)) [[details | configuration]](https://www.wpo365.com/role-based-access-using-azure-ad-groups/)
+- Replace a user's WordPress avatar with that user's Office 365 profile image ([premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/)) [[details | configuration]](https://www.wpo365.com/configuring-office-365-profile-and-avatar-synchronization#avatar)
+- Allow a user from another Office 365 tenant to register ([premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/)) [[details | configuration]](https://www.wpo365.com/wordpress-extranet/)
+- Prevent an Office 365 user to change their WordPress password and / or email address [[details | configuration]](https://www.wpo365.com/prevent-update-email-address-and-password/)
 
-The [premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/) of the plugin offers all of the above, plus:
+== Single Sign-on ==
 
-- Create and update unlimited Office 365 users
-- Support for (granting customers, partners etc. access to your (extranet))[https://www.wpo365.com/wordpress-extranet/] website
-- The ability to [quickly rollout new users to WordPress](https://www.wpo365.com/synchronize-users-between-office-365-and-wordpress/) from Active Directory
-- [Disable user access to WordPress](https://www.wpo365.com/synchronize-users-between-office-365-and-wordpress/) for users that are disabled in your tenant / domain
-- [Log out users from Office 365](https://www.wpo365.com/office-365-logout/) when they log out from your WordPress website
-- Enhanced security features e.g. Brute Force Attacks prevention
-- Enhances a user’s [WordPress profile with information from Microsoft Graph](https://www.wpo365.com/configuring-office-365-profile-and-avatar-synchronization/) e.g. office location, job title, mobile and business phone numbers
-- Replaces default WordPress avatar for a user with the [Office 365 (O365) profile picture](https://www.wpo365.com/configuring-office-365-profile-and-avatar-synchronization/) and caches it
-- Access Control based on users being a member of either an Office 365 or an Azure AD Security group
-- Automated WordPress Role Assignment based on a configurable mapping between Office 365 or Azure AD Security groups and WordPress roles
-- Plain wp-config.php configuration (improves the overall performance of your website)
-- One support item included
+- Authenticate an employee or student when that user navigates to your (intranet) website [[details | configuration]](https://www.wpo365.com/wpo365-login-features-and-authentication-flow/)
+- Authenticate a partner coming from another tenant when that user navigates to your (extranet) website ([premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/)) [[details | configuration]](https://www.wpo365.com/wordpress-extranet/)
+- Authenticate an internet editor or administrator when that user navigates to your (corporate) website's backend [[details | configuration]](https://www.wpo365.com/wpo365-login-features-and-authentication-flow/)
+- Authenticate a user when that user clicks the "Sign in (with Microsoft)" button or link that you placed on a page with a simple shortcode ([premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/)) [[details | configuration]](https://www.wpo365.com/authentication-shortcode/)
+- Accept / reject login attempts based on the user's Azure AD group membership(s) ([premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/)) [[details | configuration]](https://www.wpo365.com/role-based-access-using-azure-ad-groups/)
+- Sign out a user from Office 365 when that user signs out of your website ([premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/)) [details | configuration]](https://www.wpo365.com/office-365-logout/)
+- Intercept manual login attempts when the user is an Office 365 user ([premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/)) [[details | configuration]](https://www.wpo365.com/intercept-manual-login/)
+
+== User Synchronization ==
+
+- Quickly enroll new users to WordPress from Azure AD (per user or in batches) ([premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/)) [[details | configuration]](https://www.wpo365.com/synchronize-users-between-office-365-and-wordpress/)
+- Update WordPress user profile with information from Microsoft Graph e.g. Job Title, Contact Details and Office Location (per user or in batches) ([premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/)) [[details | configuration]](https://www.wpo365.com/configuring-office-365-profile-and-avatar-synchronization/)
+- Update WordPress user role(s) based on Azure AD group membership(s) (per user or in batches) ([premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/)) [[details | configuration]](https://www.wpo365.com/role-based-access-using-azure-ad-groups/)
+- See what user WordPress users do not have a matching Office 365 account ([premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/)) [[details | configuration]](https://www.wpo365.com/synchronize-users-between-office-365-and-wordpress/)
+
+== Integration ==
+
+- Client-side solutions can request access tokens for Azure AD secured resources e.g. SharePoint Online and Microsoft Graph ([premium version](https://www.wpo365.com/downloads/wordpress-office-365-login-premium/)) [[details | configuration]](https://www.wpo365.com/pintra-fx/)
+- Developers can include a simple and robust API from [npm](https://www.npmjs.com/package/pintra-fx) [[details | configuration]](https://www.wpo365.com/pintra-fx/)
+- Authors can inject Pintra Framework apps into any page or post using a simple WordPress shortcode / macro [[details | configuration]](https://www.wpo365.com/pintra-fx/)
 
 Also have a look at [this post](https://www.wpo365.com/wpo365-login-features-and-authentication-flow/) if you need help to decide whether or not our plugin can help you improve the user experience when user try to gain accessing to your corporate intranet or internet WordPress site.
+
+https://youtu.be/fM4TSbNS-R4
 
 = Prerequisites =
 
@@ -75,172 +81,38 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 == Upgrade Notice ==
 
+When upgrading from version 5.3 to 6 please make sure to review the following configuration options:
+
+- Azure AD - Your (own) domain
+- Azure AD - Default domain
+- Integration - Enable token service
+- Integration - Check nonce
+- Erros - [all]
+
 == Changelog ==
 
-= 1.0 =
-* Initial version submitted to Wordpress.org
+= 6.0 =
+* Change: A configuration option has been added to always redirect a user to a designated page upon signin into the website
+* Change: A client (side) application can now request an oauth access token for any Azure AD secured resource e.g. Graph and SharePoint Online
+* Change: A configuration section has been added to configure / disable the aforementioned AJAX service for Azure AD oauth access tokens
+* Change: A Configuration section has been added that allows administrators to define custom login error messages
+* Change: Refresh tokens e.g. for Graph and SharePoint Online are now set to expire after 14 days
+* Change: The plugin will now cache the Microsoft signin keys used to verify the incoming ID token for 6 hours to improve overall performance
+* Change: The flow to obtain access tokens has been refactored and greatly simplied (existing methods have been marked deprecated)
+* Fix: Dynamic role assignment will not add default role when user has existing role(s)
 
-= 1.1 =
-* Added Wordpress compliant readme.txt
+= 5.3 =
+* Change: Pages Blacklist can now include query string parts e.g. "?api=" but administrators need to be aware that this can potentially weaken overall security [read more](https://www.wpo365.com/pages-blacklist/)
 
-= 1.2 =
-* Removed wpo365-redirect.php (and calling wp-load.php)
-* Fixed debug level logging, now writing most of the logs when debug mode checked
-* Added option to manage pages to blacklist from session validation
-* Updated readme.txt
-
-= 1.3 =
-* Added redux settings for preventing users changing email and/or password
-* Improved error handling with error messages shown on default wp login page
-* Improved flow and created hook to handle redirect (for future oauth tokens)
-* Renamed namespace Logger to Util
-* Obfuscated user's id in session cookie
-
-= 1.4 =
-* Remove usage of PHP session on each page load to optimize for PHP caching
-
-= 1.5 =
-* Renamed main plugin file to wpo365-login.php
-* Tested with PHP 5.5.0
-* Fixed issue with array notation to support older PHP version
-* Fixed issue with generating certificate string
-* Removed redirect hook
-
-= 1.6 =
-* To resolve (issue 9)[https://github.com/wpo365/wpo365-login/issues/9] changed flow to earlier test if user is wordpress-only and cancel validation if so
-
-= 1.7 =
-* Added option to configure default role for any new Wordpress user (representing the Office 365 / Azure AD user) created by the plugin (default role is Subscriber)
-* Added option to configure preferred WPO365-login scenario and allowed by default for two scenarios: 'Intranet' to secure both Wordpress front- and backend and 'Internet' to secure only the backend
-* Ensured that upon adding a new Wordpress user this user is returned correctly to main the session validation flow.
-
-= 1.8 =
-* To resolve (issue 11 - Can't use function return value in write context)[https://github.com/wpo365/wpo365-login/issues/11]
-
-= 1.9 =
-* Resolve issue when empty user data is received from Azure Active Directory
-* Added option to work-around missing server-side dependencies for CURL to verify SSL host (lowers general security)
-
-= 1.10 =
-* Changed the way the PEM string is being put together from wordwrap to chunk_split
-* Changed the incoming algorithm to uppercase
-* Added additional logging in case id token decoding fails
-
-= 1.11 =
-* Added error check to see if the response from Microsoft contains an error and if yes show this error on the login page
-
-= 1.12 =
-* Removed setting the domain for a cookie as this caused an issue with Internet Explorer
-
-= 1.13 =
-* Setting cookies for all possible paths (similar to how wp cookies are being set)
-
-= 2.0 =
-* Improved security by not storing user id in own cookie but instead use Wordpress user metadata
-* Added action hook "wpo365_openid_token_processed" that can be used by other Wordpress extensions to get additional access tokens for pulling data from Office 365 into Wordpress pages
-* Change options page name with page slug wpo365-options
-
-= 2.1 =
-* Plugin will check whether the id token received contains a valid unique name or upn
-* Improved logging that would allow an administrator to write the id token to the Wordpress debug log (should be used carefully as this contains sensitive data)
-
-= 2.2 =
-* Enhanced support for users with an MSA account (@live.com or @outlook.com) 
-
-= 2.3 =
-* Changed the default resource for authorization from application id to Azure Active Directory allowing for consent being delegated plus added the option to change the default resource id configuratively
-
-= 2.4 =
-* Tested with Wordpress 4.9 RC 2
-* Added default value for scope
-
-= 2.5 =
-* Improved flow in case the plugin is not configured
-* Added plugin installation and update tracking
-* Updated and refactored code to better follow Wordpress guidelines
-
-= 2.6 =
-* Fixed a bug that prevented deleting error messages shown on the login page
-* Minor changes to captions and labels
-
-= 2.7 =
-* Updated tracking to compare plugin version as string
-
-= 2.8 =
-* Fixed global plugin version that collides with multiple wpo365 plugins
-
-= 2.9 =
-* Fixed issue with keys retrieved from Microsoft that may prevent a user from logging in successfully
-
-= 3.0 =
-* Added support for Wordpress multisite [configuration](https://www.wpo365.com/version-3-0-supports-wordpress-multisite-wpmu/)
-* Added configuration for a default role in a sub site
-* Added configuration to prevent the automatic creation of new wordpress users 
-* Added wp-config setting "WPO365_DEFAULT_USER_ROLE" that optionally can override corresponding redux option to tighten security
-
-= 3.1 =
-* Added the option to white-list domains for users that may access your Wordpress site. This is only useful, when configuring the plugin to use in combination with a multi-tenant Azure AD application registration. If you have no idea, what this is about, then leaving this field empty is your best option.
-
-= 3.2 =
-* Fixed issue with domain white-list.
-
-= 3.3 =
-* Fixed issue with safari and firefox nonce cookie not being persisted on redirect
-
-= 3.4 =
-* Fixed issue with login-refresh error causing a "your login might be tampered with" error after an hour
-
-= 3.5 =
-* Validation of session now starts as soon as the required settings are loaded to ensure that validation of authentication happens as soon as possible
-
-= 3.6 =
-* Fixed issues with loading of Redux dependency in case multiple Redux instance are used within one Wordpress site
-* Removed the use of cookies to pass error information between page redirects and by doing so avoid "Cannot modify header information - headers already sent" warnings
-
-= 3.7 =
-* Replaced use of array as const to support older PHP versions
-
-= 3.8 =
-* Added a "Leeway" setting to account for clock skew when checking the id token validity
-
-= 3.9 =
-* Updated algorithm to validate a user's email address
-* More accurate help & support links
-
-= 3.10 =
-* Replaced the nonce algorithm to avoid too much dependency on current URL (e.g. with or without www)
-
-= 3.11 =
-* Replaced array construct to remain compatibel with older PHP versions
-
-= 3.12 =
-* Now the plugin decides to prepend https to the state property based on the protocol used for the redirect url. Some WordPress hosters use SLL terminating proxies, causing default WordPress SSL detection to fail. This may cause the plugin to redirect the user after login to the wrong website address starting with http instead of https and this eventually may lead to the user being caught in an infinite authentication loop.
-* Simplified the nonce algorithm
-
-= 3.13 =
-* Added information banner on wpo365-options page
-
-= 4.0 =
-* Added license validation for the Personal Blog (free) version, in order to prevent the creation of more than 3 users (unlimited users can still be created manually).
-
-= 4.1 =
-* Fixed "Undefined index page" notice visible on the admin page
-
-= 4.2 =
-* Added extra help links to the Redux Options page for easier installation
-
-= 5.0 =
-* Moved the JWT class into the Wpo namespace (to avoid class loading issues)
-* Added psr-4 type auto class loading
-* Code refactoring to allow for tighter integration e.g. with [SharePoint Online Plugin](https://wordpress.org/plugins/wpo365-spo/)
+= 5.2 =
+* Fix: user_nicename - a WP_User field that is limited to 50 characters - was wrongly set to a user's full name which under circumstances prevented a user from being created successfully
 
 = 5.1 =
 * Fix: When searching for O365 users search both in email and login name
 * Fix: Check before redirecting whether headers are sent and if yes falls back to an alternative method to redirect
 * Fix: search_columns argument for WP_User_Query must be an array
 
-= 5.2 =
-* Fix: user_nicename - a WP_User field that is limited to 50 characters - was wrongly set to a user's full name which under circumstances prevented a user from being created successfully
-
-= 5.3 =
-* Change: Pages Blacklist can now include query string parts e.g. "?api=" but administrators need to be aware that this can potentially weaken overall security [read more](https://www.wpo365.com/pages-blacklist/)
+= 5.0 =
+* Moved the JWT class into the Wpo namespace (to avoid class loading issues)
+* Added psr-4 type auto class loading
+* Code refactoring to allow for tighter integration e.g. with [SharePoint Online Plugin](https://wordpress.org/plugins/wpo365-spo/)

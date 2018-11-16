@@ -22,7 +22,7 @@
         // This is where your data is stored in the database and also becomes your global variable name.
         'display_name'         => 'Wordpress + Office 365 - login',
         // Name that appears at the top of your panel
-        'display_version'      => '5.3',
+        'display_version'      => '6.0',
         // Version that appears at the top of your panel
         'menu_type'            => 'menu',
         //Specify if the admin menu should appear or not. Options: menu or submenu (Under appearance only)
@@ -166,6 +166,21 @@
         'desc'     => __( 'Consult the following <a href="https://www.wpo365.com/wpo365-options-explained#AzureAdOptions">online documentation</a> for a detailed explanation of the Azure AD configuration options.', 'wpo-365-options' ),
         //'icon'   => 'el el-home',
         'fields' => array(
+            array(
+                'id'       => 'custom_domain',
+                'type'     => 'text',
+                'title'    => __( 'Your (own) domain', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/your-own-domain/"><strong>help</strong></a>]',
+                'desc'     => __( 'The domain you (optionally) added in Microsoft 365 e.g. mycompany.com', 'wpo-365-options' ),
+                'hint'     => array(
+                    'content' => 'Only fill out if you added a custom domain e.g. mycompany.com to your Office 365 account. Do not add the cloud-only yourcompany.onmicrosoft.com domain here.',
+                )
+            ),
+            array(
+                'id'       => 'default_domain',
+                'type'     => 'text',
+                'title'    => __( 'Default domain', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/default-domain/"><strong>help</strong></a>]',
+                'desc'     => __( 'Your default (cloud-only) O365 domain e.g. mycompany.onmicrosoft.com', 'wpo-365-options' ),
+            ),
             array(
                 'id'       => 'application_id',
                 'type'     => 'text',
@@ -326,6 +341,70 @@
                     'content' => 'In case of a multisite Wordpress installation the user is added to the main site and to the site he/she is requesting access to. This settings is for the default role in the latter site.',
                 )
             )
+        )
+    ) );
+
+    Redux::setSection($opt_name, array(
+        'title'  => __( 'Integration', 'wpo-365-options' ),
+        'id'     => 'integration_config',
+        'desc'   => __( 'Consult the following <a href="https://www.wpo365.com/wpo365-options-explained#integration">online documentation</a> for a detailed explanation of the Integration configuration options.', 'wpo-365-options' ),
+        //'icon'   => 'el el-home',
+        'fields' => array(
+            array(
+                'id'       => 'enable_token_service',
+                'type'     => 'checkbox',
+                'title'    => __( 'Enable token service' ) . ' [<a target="_blank" href="https://www.wpo365.com/bearer-token-service/"><strong>help</strong></a>]',
+                'subtitle' => __( '', 'wpo-365-options' ),
+                'desc'     => __( 'Enables the plugin\'s builtin AJAX service that can be consumed by client side (JavaScript) apps to retrieve Azure AD bearer tokens e.g. for SharePoint Online and Microsoft Graph.', 'wpo-365-options' ),
+                'default'  => '0',
+            ),
+            array(
+                'id'       => 'enable_nonce_check',
+                'type'     => 'checkbox',
+                'title'    => __( 'Check nonce' ) . ' [<a target="_blank" href="https://www.wpo365.com/check-nonce/"><strong>help</strong></a>]',
+                'subtitle' => __( '', 'wpo-365-options' ),
+                'desc'     => __( 'When checked, the request sent to the AJAX server must include a nonce. See <a target="_blank" href="https://www.wpo365.com/check-nonce/"><strong>online documentation</strong></a> for instructions.', 'wpo-365-options' ),
+                'default'  => '0',
+            ),
+        )
+    ) );
+
+    Redux::setSection($opt_name, array(
+        'title'  => __( 'Errors', 'wpo-365-options' ),
+        'id'     => 'error_config',
+        'desc'   => __( 'Consult the following <a href="https://www.wpo365.com/wpo365-options-explained#errors">online documentation</a> for a detailed explanation of the Integration configuration options.', 'wpo-365-options' ),
+        //'icon'   => 'el el-home',
+        'fields' => array(
+            array(
+                'id'       => 'WPO_ERROR_NOT_CONFIGURED',
+                'type'     => 'textarea',
+                'title'    => 'NOT_CONFIGURED' . ' [<a target="_blank" href="https://www.wpo365.com/custom-errors/"><strong>help</strong></a>]',
+                'default'  => 'Wordpress + Office 365 login not configured yet. Please contact your System Administrator.',
+            ),
+            array(
+                'id'       => 'WPO_ERROR_CHECK_LOG',
+                'type'     => 'textarea',
+                'title'    => 'CHECK_LOG' . ' [<a target="_blank" href="https://www.wpo365.com/custom-errors/"><strong>help</strong></a>]',
+                'default'  => 'Please contact your System Administrator and check log file.',
+            ),
+            array(
+                'id'       => 'WPO_ERROR_TAMPERED_WITH',
+                'type'     => 'textarea',
+                'title'    => 'TAMPERED_WITH' . ' [<a target="_blank" href="https://www.wpo365.com/custom-errors/"><strong>help</strong></a>]',
+                'default'  => 'Your login might be tampered with. Please contact your System Administrator.',
+            ),
+            array(
+                'id'       => 'WPO_ERROR_USER_NOT_FOUND',
+                'type'     => 'textarea',
+                'title'    => 'USER_NOT_FOUND' . ' [<a target="_blank" href="https://www.wpo365.com/custom-errors/"><strong>help</strong></a>]',
+                'default'  => 'Could not create or retrieve your login. Please contact your System Administrator.',
+            ),
+            array(
+                'id'       => 'WPO_ERROR_NOT_IN_GROUP',
+                'type'     => 'textarea',
+                'title'    => 'NOT_IN_GROUP' . ' [<a target="_blank" href="https://www.wpo365.com/custom-errors/"><strong>help</strong></a>]',
+                'default'  => 'Access Denied. Please contact your System Administrator.',
+            ),
         )
     ) );
 

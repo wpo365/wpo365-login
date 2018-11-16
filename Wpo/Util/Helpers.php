@@ -6,16 +6,18 @@
     defined( 'ABSPATH' ) or die();
 
     use \Wpo\Util\Logger;
+    use \Wpo\Aad\Auth;
+    use \Wpo\Util\Error_Handler;
 
     if( !class_exists( '\Wpo\Util\Helpers' ) ) {
 
         class Helpers {
-            
+
             /**
              * Checks whether headers are sent before trying to redirect and if sent falls
              * back to an alternative method
              * 
-             * @since 5.1
+             * @since 4.3
              * 
              * @param string $url URL to redirect to
              * @return void
@@ -23,16 +25,13 @@
             public static function force_redirect( $url ) {
 
                 if( headers_sent() ) {
-
                     Logger::write_log( 'DEBUG', 'Headers sent when trying to redirect user to ' . $url );
-
                     echo '<script type="text/javascript">';
                     echo 'window.location.href="'. $url . '";';
                     echo '</script>';
                     echo '<noscript>';
                     echo '<meta http-equiv="refresh" content="0;url=' . $url . '" />';
                     echo '</noscript>';
-                    
                     exit();
                 }
 
@@ -41,82 +40,153 @@
             }
             
             /**
-             * Prevents wordpress from replacing &nbps; and \n with <p> and <br> inside wpo365 shortcodes
+             * Helper method to ensure that short codes are initialized
              * 
-             * @since 2.0
+             * @since 4.0
+             * 
+             * @return void
              */
-            public static function update_wpautop_formatting() {
+            public static function ensure_short_codes() {
 
-                // User expicitely disabled this functionality
-                if( isset( $GLOBALS['wpo365_options'] ) 
-                    && $GLOBALS['wpo365_options']['replace_wpautop'] != 1 ) {
-
-                    return;
-
-                }
-                
-                // Remove the default Wordpress filter
-                remove_filter( 'the_content', 'wpautop' );
-
-                // Add our custom filter that only applies wpautop outside of our shortcodes
-                add_filter( 'the_content', function( $content ) {
-                    
-                    // Find start of short code
-                    $sc_start = strpos( $content, '[wpo365' );
-                    
-                    // No wpo365 shortcode found
-                    if( $sc_start === false ) {
-
-                        return wpautop( $content );
-
-                    }
-
-                    $result = '';
-                    $content_after = '';
-                    
-                    // No loop through content and search for short codes ( there could be more than one )
-                    while( $sc_start !== false ) {
-                        
-                        $sc_stop = strpos( $content, '-sc]' ) + 4;
-                    
-                        $content_before = wpautop( substr( $content, 0, $sc_start ) );
-                        $short_code = substr( $content, $sc_start, $sc_stop - $sc_start );
-                        $content = wpautop( substr( $content, $sc_stop ) ); // Content becomes the tail
-                        
-                        $result = $content_before . $short_code; // Save content before shortcode plus short code
-                        $sc_start = strpos( $content, '[wpo365' ); // Check tail for more wpo365 shortcodes
-
-                    }
-
-                    return $result . $content; // Finally add tail and return
-                } ); 
+                if( !shortcode_exists( 'pintra' ) )
+                    add_shortcode( 'pintra', '\Wpo\Util\Helpers::add_pintra_shortcode' );
             }
 
+            /**
+             * Adds the Search Center short code that injects the Search Center template 
+             * 
+             * @since 6.0
+             * 
+             * @param array short code parameters according to Wordpress codex
+             * @param string content found in between the short code start and end tag
+             * @param string text domain
+             */
+            public static function add_pintra_shortcode( $atts = array(), $content = null, $tag = '' ) {
+                $atts = array_change_key_case( (array)$atts, CASE_LOWER);
+                $props = '[]';
+                
+                if( isset( $atts[ 'props' ] ) 
+                    && strlen( trim( $atts[ 'props' ] ) ) > 0 ) {
+                        $result = array();
+                        $prop_kv_pairs = explode( ';', $atts[ 'props' ] );
+                        
+                        foreach( $prop_kv_pairs as  $prop_kv_pair ) {
+                            $prop_kv_array = explode( ',', $prop_kv_pair );
+                            
+                            if( sizeof( $prop_kv_array ) == 2)
+                                $result[ $prop_kv_array[0] ] = addslashes( utf8_encode( $prop_kv_array[1] ) );
+                        }
+                        $props = json_encode( $result );
+                }
+
+                $script_url = isset( $atts[ 'script_url' ] ) ? $atts[ 'script_url' ] : '';
+
+                ob_start();
+                include( $GLOBALS[ 'WPO365_PLUGIN_DIR' ] . '/templates/pintra.php' );
+                $content = ob_get_clean();
+                return $content;
+            }
+
+            /**
+             * When multisite and when using Redux then try and obtain settings from the main site 
+             * in the network
+             * 
+             * @since 6.0
+             * 
+             * @return void
+             */
+            public static function wpmu_copy_wpo365_options() {
+                if( is_multisite() && defined( 'WPO_USE_WP_CONFIG' ) && constant( 'WPO_USE_WP_CONFIG' ) !== true ) {
+                    
+                    global $current_site;
+                    $main_site_blog_id = (int)$current_site->blog_id;
+                    
+                    if( get_option( 'wpo365_options' ) != get_blog_option( $main_site_blog_id, 'wpo365_options' ) ) 
+                        update_option( 'wpo365_options', get_blog_option( 1, 'wpo365_options' ) );
+                }
+            }
+
+            /**
+             * Checks whether the mandatory fields have been configured once the
+             * plugin is activate
+             * 
+             * @since 6.0
+             * 
+             * @param $exit boolean True if the user should be sent to the login form, otherwise false.
+             * 
+             * @return boolean True if minimal set of options have been configured.
+             */
+            public static function is_wpo365_configured( $exit ) {
+                $directory_id = self::get_global_var( 'WPO_DIRECTORY_ID' );
+                $application_id = self::get_global_var( 'WPO_APPLICATION_ID' );
+                $redirect_url = self::get_global_var( 'WPO_REDIRECT_URL' );
+                $scope = self::get_global_var( 'WPO_SCOPE' );
+                $resource = self::get_global_var( 'WPO_RESOURCE_azure_ad' );
+
+                // Check if WPO365 is unconfigured and if so redirect to login page
+                if( ( is_wp_error( $directory_id ) 
+                    || is_wp_error( $application_id ) 
+                    || is_wp_error( $redirect_url )
+                    || is_wp_error( $scope )
+                    || is_wp_error( $resource ) ) ) {
+                        Logger::write_log( 'ERROR', 'WPO365 not configured' );
+
+                        // Only prevent O365 users from logging in
+                        if( $exit && !is_user_logged_in() ) 
+                            Auth::goodbye( Error_Handler::NOT_CONFIGURED );
+                        else 
+                            return false;
+                }
+
+                return true;
+            }
+            
             /**
              * Gets the domain (host) part of an email address.
              * 
              * @since 3.1
              * 
              * @param   string  $email_address  email address to analyze
-             * @return  (mixed|boolean|string)  returns false if email cannot be validated and otherwise the 
-             *                                  email address' host part
+             * @return  string  Returns the email address' host part or an empty string if
+             *                  the email address appears to be invalid
              */
             public static function get_smtp_domain_from_email_address( $email_address ) {
+                $smpt_domain = '';
+                if( filter_var( trim( $email_address ), FILTER_VALIDATE_EMAIL ) !== false )
+                    $smpt_domain = strtolower( trim( substr( $email_address, strrpos( $email_address, '@' )  + 1 ) ) );
 
-                if( filter_var( trim( $email_address ), FILTER_VALIDATE_EMAIL ) !== false ) {
+                return $smpt_domain;
+            }
 
-                    return   strtolower( trim( substr( $email_address, strrpos( $email_address, '@' )  + 1 ) ) );
+            /**
+             * Checks a user's smtp domain against the configured custom and default domains
+             * 
+             * @since 4.0
+             * 
+             * @return boolean true if a match is found otherwise false
+             */
+            public static function is_tenant_domain( $email_domain ) {
+                $custom_domain = self::get_global_var( 'WPO_CUSTOM_DOMAIN' );
+                $default_domain = self::get_global_var( 'WPO_DEFAULT_DOMAIN' );
 
+                if( !is_wp_error( $custom_domain ) && false !== strpos( $custom_domain, ";" )) {
+                    $custom_domains = explode( ";", trim( $custom_domain ) );
+                    $custom_domain = array_flip( $custom_domains );
                 }
 
+                if( ( 
+                    !is_wp_error( $custom_domain ) && ( ( is_array( $custom_domain ) && array_key_exists( $email_domain, $custom_domain ) ) 
+                    || ( !is_array( $custom_domain ) && strtolower( trim( $custom_domain ) ) == $email_domain ) ) )
+                    || ( !is_wp_error( $default_domain ) && strtolower( trim( $default_domain ) ) == $email_domain ) )
+                        return true;
+                
                 return false;
-
             }
 
             /**
              * Creates a nonce using the nonce_secret
              * 
-             * @since 3.10
+             * @since 1.6
              * 
              * @return (string|WP_Error) nonce as a string otherwise an WP_Error (most likely when dependency are missing)
              */
@@ -127,8 +197,7 @@
                 if( empty( $nonce_salt ) ) {
 
                     Logger::write_log( 'ERROR', 'Global var NONCE_SALT not defined' );
-                    return new \WP_Error( '', 'Nonce salt not defined' );
-
+                    return new \WP_Error( '4000', 'Nonce salt not defined' );
                 }
 
                 $nonce_secret = $nonce_salt;
@@ -136,7 +205,6 @@
                 if( isset( $GLOBALS['wpo365_options'] ) && isset( $GLOBALS['wpo365_options']['nonce_secret'] ) ) {
 
                     $nonce_secret = $GLOBALS['wpo365_options']['nonce_secret'];
-
                 }
 
                 $nonce_hash = hash_hmac( 'sha256', $nonce_secret, $nonce_salt, false );
@@ -157,7 +225,7 @@
             /**
              * Validates a nonce created with Helpers::get_nonce()
              * 
-             * @since 3.10
+             * @since 1.6
              * 
              * @param string $nonce encoded nonce value to validate
              * @return (boolean|WP_Error) true when valide otherwise WP_Error
@@ -169,8 +237,7 @@
                 if( empty( $nonce_salt ) ) {
 
                     Logger::write_log( 'ERROR', 'Global var NONCE_SALT not defined' );
-                    return new \WP_Error( '', 'Nonce salt not defined' );
-
+                    return new \WP_Error( '5000', 'Nonce salt not defined' );
                 }
 
                 $nonce_secret = $nonce_salt;
@@ -178,7 +245,6 @@
                 if( isset( $GLOBALS['wpo365_options'] ) && isset( $GLOBALS['wpo365_options']['nonce_secret'] ) ) {
 
                     $nonce_secret = $GLOBALS['wpo365_options']['nonce_secret'];
-
                 }
 
                 $decoded = base64_decode( $nonce );
@@ -186,161 +252,27 @@
                 if ($decoded === false) {
                 
                     Logger::write_log( 'ERROR', 'Your login has been tampered with [decoding failed]' );
-                    return new \WP_Error( '', 'Your login has been tampered with [decoding failed]' );
-
+                    return new \WP_Error( '5010', 'Your login has been tampered with [decoding failed]' );
                 }
 
                 $message = json_decode( $decoded );
-
                 $nonce_hash = hash_hmac( 'sha256', $nonce_secret, $nonce_salt, false );
 
                 if( $message->nonce != $nonce_hash ) {
 
                     Logger::write_log( 'ERROR', 'Your login has been tampered with [hash does not match]' );
-                    return new \WP_Error( '', 'Your login has been tampered with [hash does not match]' );
-
+                    return new \WP_Error( '5020', 'Your login has been tampered with [hash does not match]' );
                 }
 
                 if ( time() > intval( $message->expires ) ) {
                     
                     Logger::write_log( 'ERROR', 'Your login has been tampered with [nonce expired]' );
-                    return new \WP_Error( '', 'Your login has been tampered with [nonce expired]' );
-
+                    return new \WP_Error( '5030', 'Your login has been tampered with [nonce expired]' );
                 }
 
                 Logger::write_log( 'DEBUG', 'Nonce message: ' . $message->nonce );
-
                 return true;
 
-            }
-
-            /**
-             * Takes a one dimensional set of results and transforms this into 
-             * a mulit dimensional array of rows with a max size equal to $cols
-             *
-             * @since 2.0
-             * 
-             * @param   array   $results    one dimensional array which items will be rowified
-             * @param   int     $cols       Number of items per row in the resulting array ( when zero all items are placed in a single row )
-             * @return  array   Multi dimensional array containing rows of items where max size of a row equals $cols
-             */
-            public static function rowify_results( $results, $cols ) {
-            
-                Logger::write_log( 'DEBUG', 'Nr. of results: ' . sizeof( $results ) );
-                
-                if( !is_array( $results ) ) {
-                    return array();
-                }
-            
-                $rowified = array();
-                $row = array();
-                
-                for( $i = 0; $i < sizeof( $results ); $i++ ) {
-
-                    // In case of 0 cols are results are placed in one single row
-                    if( $cols == 0 ) {
-
-                        array_push( $row, $results[$i] );
-                        continue;
-
-                    }
-            
-                    if( sizeof( $row ) == $cols ) {
-            
-                        array_push( $rowified, $row );
-                        $row = array();
-            
-                        Logger::write_log( 'DEBUG', 'Pushed row in to overall result' );
-                    }
-            
-                    array_push( $row, $results[$i] );
-            
-                    Logger::write_log( 'DEBUG', 'Pushed item into a row' );
-                }
-            
-                // push the last row
-                if( sizeof( $row ) > 0 ) {
-                    array_push( $rowified, $row );
-                }
-            
-                return $rowified;
-            }
-
-            /**
-             * Parses a query string into an associative array
-             *
-             * @since   2.0
-             *
-             * @param   string  $str    Query string thus everthing that follows the '?'
-             * @return  associative array that may be empty if something went wrong
-             */
-            public static function parse_query_str( $str ) {
-
-                // Return empty array in case of no query string
-                if( empty( $str ) ) {
-
-                    return array();
-
-                }
-                
-                // Result array
-                $arr = array();
-            
-                // split on outer delimiter
-                $pairs = explode( '&', $str );
-            
-                // loop through each pair
-                foreach ( $pairs as $i ) {
-
-                    // split into name and value
-                    list( $name,$value ) = explode( '=', $i );
-            
-                    // if name already exists
-                    if( isset( $arr[$name] ) ) {
-
-                        // stick multiple values into an array
-                        if( is_array( $arr[$name] ) ) {
-
-                            $arr[$name][] = $value;
-
-                        }
-                        else {
-
-                            $arr[$name] = array( $arr[$name], $value );
-
-                        }
-
-                    }
-                    // Otherwise, simply stick it in a scalar
-                    else {
-
-                        $arr[$name] = $value;
-
-                    }
-                }
-            
-                # return result array
-                return $arr;
-            }
-
-            /**
-             * Removes query string from string ( there may be an incompatibility with URL rewrite )
-             *
-             * @since 2.0
-             *
-             * @return  Current URL as string without query string
-             */
-            public static function reconstruct_url() {
-                
-                $reconstructed_url = ( isset( $_SERVER['HTTPS'] ) ? 'https' : 'http' ) . '://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]';
-                $pos = strpos( $reconstructed_url, '?' );
-
-                // Remove query string if found
-                if( $pos !== false ) {
-                    $reconstructed_url = substr( $reconstructed_url, 0, $pos );
-                }
-            
-                return $reconstructed_url;
             }
 
             /**
@@ -356,14 +288,12 @@
                 if( strpos( $url, 'http' ) !== 0 ) {
 
                     return null;
-
                 }
 
                 // Multisite has dependencies that are only loaded when needed
                 if( is_multisite() ) {
                     
                     return self::ms_target_site_info( $url );
-
                 }
 
                 // Not multisite
@@ -388,9 +318,7 @@
                     'network_site_url'           => $site_url,
                     'target_is_network_site'     => true,
                     'subdomain_install'          => false,
-
                 );
-
             }
 
             /**
@@ -411,7 +339,6 @@
                 if( $nr_of_segments < 3 ) {
 
                     return false;                    
-
                 }
 
                 $protocol = str_replace( ':', '', $segments[ 0 ] );
@@ -425,7 +352,6 @@
                     for( $i = 3; $i < $nr_of_segments; $i++ ) {
 
                         $path_test = '/' . implode( '/', array_slice( $segments, 3, $nr_of_segments - $i ) ) . '/';
-
                         $blog_id_test = get_blog_id_from_url( $domain, $path_test );
                         
                         if( $blog_id_test > 0 ) {
@@ -433,11 +359,8 @@
                             $blogid = $blog_id_test;
                             $path = $path_test;
                             break;
-
                         }
-
                     }
-
                 }
                 
                 return array(
@@ -451,9 +374,7 @@
                     'network_site_url'           => $network_site_url,
                     'target_is_network_site'     => ( $protocol . '://' . $domain . $path == $network_site_url ),
                     'subdomain_install'          => $subdomain_install,
-
                 );
-
             }
 
             /**
@@ -467,28 +388,26 @@
             public static function add_query_vars_filter( $vars ) {
 
                 $vars[] = 'login_errors';
-
                 return $vars;
-
             }
 
             /**
              * Removes query string from string ( there may be an incompatibility with URL rewrite )
              *
-             * @since 2.5
+             * @since 3.0
              *
              * @return  Current URL as string without query string
              */
             public static function check_version() {
-                
+
                 // Get plugin version from db
                 $plugin_db_version = get_site_option( 'wpo365-login-version' );
 
                 // Add new option if not yet existing
                 if( false === $plugin_db_version ) {
 
-                    add_site_option( 'wpo365-login-version', $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] );
-                    Helpers::track( 'install' );
+                    update_site_option( 'wpo365-login-version', $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] );
+                    self::track( 'install' );
                     return;
 
                 }
@@ -496,14 +415,14 @@
                 elseif( $plugin_db_version != $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] ) {
 
                     update_site_option( 'wpo365-login-version', $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ] );
-                    Helpers::track( 'update' );
+                    self::track( 'update' );
                 }
             }
 
             /**
              * Removes query string from string ( there may be an incompatibility with URL rewrite )
              *
-             * @since 2.5
+             * @since 3.0
              *
              * @param   string  Name of event to track (default is install)
              * @return  Current URL as string without query string
@@ -513,7 +432,7 @@
                 $plugin_version = $GLOBALS[ 'PLUGIN_VERSION_wpo365_login' ];
                 $event .= '_login';
 
-                $ga = "https://www.google-analytics.com/collect?v=1&tid=UA-5623266-11&aip=1&cid=bb923bfc-cae8-11e7-abc4-cec278b6b50a&t=event&ec=alm&ea=$event&el=wpo365-login_$plugin_version";
+                $ga = "https://www.google-analytics.com/collect?v=1&tid=UA-5623266-11&aip=1&cid=bb923bfc-cae8-11e7-abc4-cec278b6b50a&t=event&ec=alm&ea=$event&el=$plugin_version";
 
                 $curl = curl_init();
 
@@ -530,30 +449,110 @@
                     Logger::write_log( 'ERROR', 'error occured whilst tracking an alm event: ' . curl_error( $curl ) );
 
                 }
-                
                 curl_close( $curl );
+            }
 
+            /**
+             * Gets a global variable by its name and depending on global configuration expects this variable
+             * to be a redux managed option or a manually setup global wp-config.php variable.
+             * 
+             * @param   string  $name   Variable name as string
+             * @return  object|WP_Error The global variable or WP_Error if not found
+             */
+            public static function get_global_var( $name ) {                
+                $redux_keys = array(
+                    // application_name has been deprecated
+                    'WPO_CUSTOM_DOMAIN'                 => 'custom_domain',
+                    'WPO_DEFAULT_DOMAIN'                => 'default_domain',
+                    'WPO_DIRECTORY_ID'                  => 'tenant_id',
+                    'WPO_APPLICATION_ID'                => 'application_id',
+                    'WPO_RESOURCE_azure_ad'             => 'aad_resource_uri',
+                    'WPO_APP_ID_URI'                    => 'application_uri',
+                    'WPO_APPLICATION_SECRET'            => 'application_secret',
+                    'WPO_SCOPE'                         => 'scope',
+                    'WPO_REDIRECT_URL'                  => 'redirect_url',
+                    'WPO_NONCE_SECRET'                  => 'nonce_secret',
+                    'WPO_GOTO_AFTER_SIGNON_URL'         => 'goto_after_signon_url',
+                    'WPO_PAGES_BLACKLIST'               => 'pages_blacklist',
+                    'WPO_DOMAIN_WHITELIST'              => 'domain_whitelist',
+                    'WPO_SESSION_DURATION'              => 'session_duration',
+                    'WPO_REFRESH_DURATION'              => 'refresh_duration',
+                    'WPO_BLOCK_EMAIL_UPDATE'            => 'block_email_change',
+                    'WPO_BLOCK_PASSWORD_UPDATE'         => 'block_password_change',
+                    'WPO_AUTH_SCENARIO'                 => 'auth_scenario',
+                    'WPO_CREATE_ADD_USERS'              => 'create_and_add_users',
+                    'WPO_DEFAULT_ROLE_MAIN_SITE'        => 'new_usr_default_role',
+                    'WPO_DEFAULT_ROLE_SUB_SITE'         => 'mu_new_usr_default_role',
+                    'WPO_SKIP_SSL_HOST_VERIFICATION'    => 'skip_host_verification',
+                    'WPO_DEBUG_LOG_ID_TOKEN'            => 'debug_log_id_token',
+                    'WPO_MAIL_MIME_TYPE'                => 'mail_mime_type',
+                    'WPO_MAIL_SAVE_TO_SENT'             => 'mail_save_on_sent',
+                    'WPO_LEEWAY'                        => 'leeway',
+                    'WPO_ALWAYS_USE_GOTO_AFTER'         => 'always_use_goto_after',
+                    'WPO_ENABLE_TOKEN_SERVICE'          => 'enable_token_service',
+                    'WPO_ENABLE_NONCE_CHECK'            => 'enable_nonce_check',
+                    'WPO_ERROR_NOT_CONFIGURED'          => 'WPO_ERROR_NOT_CONFIGURED',
+                    'WPO_ERROR_CHECK_LOG'               => 'WPO_ERROR_CHECK_LOG',
+                    'WPO_ERROR_TAMPERED_WITH'           => 'WPO_ERROR_TAMPERED_WITH',
+                    'WPO_ERROR_USER_NOT_FOUND'          => 'WPO_ERROR_USER_NOT_FOUND',
+                    'WPO_ERROR_NOT_IN_GROUP'            => 'WPO_ERROR_NOT_IN_GROUP',
+                );
+
+                if( empty( $redux_keys[ $name ] ) ) {
+
+                    Logger::write_log( 'DEBUG', "Could not find the variable with name $name in the redux to wp-config.php mapping table." );
+                    return new \WP_Error( '3020', "Could not find the variable with name $name in the redux to wp-config.php mapping table." );
+                }
+
+                if( isset( $GLOBALS[ 'wpo365_options' ] ) 
+                    && isset( $GLOBALS[ 'wpo365_options' ][ $redux_keys[ $name ] ] ) 
+                    && !empty( $GLOBALS[ 'wpo365_options' ][ $redux_keys[ $name ] ] ) ) {
+
+                        return $GLOBALS[ 'wpo365_options' ][ $redux_keys[ $name ] ];
+                }
+
+                Logger::write_log( 'DEBUG', "Whilst falling back to redux options a global variable with name $name is not properly configured." );
+                return new \WP_Error( '3030', "Whilst falling back to redux options a global variable with name $name is not properly configured." );
+            }
+
+            /**
+             * Same as get_global_var but will try and interpret the value of the
+             * global variable as if it is a boolean. 
+             * 
+             * @since 4.6
+             * 
+             * @param   string  $name   Name of the global variable to get
+             * @return  boolean         True in case value found equals 1, "1", "true" or true, otherwise false.
+             */
+            public static function get_global_boolean_var( $name ) {
+                $var = self::get_global_var( $name );
+                return (
+                    $var === true 
+                    || $var === "1" 
+                    || $var === 1 
+                    || ( is_string( $var ) && strtolower( $var ) == 'true' ) ) ? true : false;
             }
 
             /**
              * Shows admin notices when the plugin is not configured correctly
              * 
-             * @since 5.0
+             * @since 2.3
              * 
              * @return void
              */
-            public static function show_admin_notices() {
+            public static function show_admin_notices( ) {
 
-                if( empty( $GLOBALS[ 'wpo365_options' ][ 'tenant_id' ])
-                    || empty( $GLOBALS[ 'wpo365_options' ][ 'application_id' ])
-                    || empty( $GLOBALS[ 'wpo365_options' ][ 'redirect_url' ]) ) {
-
+                if(!is_admin()) {
+        
+                    return;
+                }
+        
+                if( false === self::is_wpo365_configured( false ) ) {
                         echo '<div class="notice notice-error"><p>' . __( 'Please visit https://www.wpo365.com/how-to-install-wordpress-office-365-login-plugin/ for a quick reference on how to properly configure the WPO365-login plugin using the WPO365 menu to your left.' ) . '</p></div>';
                         echo '<div class="notice notice-warning is-dismissible"><p>' . __( 'The Wordpress + Office 365 login plugin protects most of Wordpress but in case of a public facing intranet it is strongly advised to block anonymous access to the Wordpress Upload directory' ) . '</p></div>';
                 }
 
                 if( isset( $_GET[ 'page' ] ) && $_GET[ 'page' ] == 'wpo365-options' ) {
-
                     ?>
 
                     <div class="notice notice-info is-dismissible" style="margin-top: 25px;">
@@ -585,52 +584,33 @@
                     </div>
 
                     <?php
-
                     echo '<div class="notice notice-warning is-dismissible"><p>' . __( 'The Wordpress + Office 365 login plugin protects most of Wordpress but in case of a public facing intranet it is strongly advised to block anonymous access to the Wordpress Upload directory' ) . '</p></div>';
                 }    
             }
 
             /**
-             * Disables older wpo365-spo because of incompatibilities
+             * Adds no-cache headers to the headers sent when the desired authentication scenario is "Intranet"
              * 
-             * @since 5.0
-             * 
-             * @param $path
-             */
-            public static function disable_spo_plugin() {
-
-                if ( ! function_exists( 'get_plugins' ) ) {
-
-                    require_once ABSPATH . 'wp-admin/includes/plugin.php';
-                }
-            
-                $plugins = get_plugins();
-
-                $old_spo_plugin_exists = array_key_exists( 'wpo365-spo/wpo365-spo.php', $plugins ) 
-                    && array_key_exists( 'Version', $plugins[ 'wpo365-spo/wpo365-spo.php' ] ) 
-                    && floatval( $plugins[ 'wpo365-spo/wpo365-spo.php' ][ 'Version' ] ) < 1;
-
-                if( true === $old_spo_plugin_exists ) {
-
-                    deactivate_plugins( dirname( $GLOBALS[ 'WPO365_PLUGIN_DIR' ] ) . '/wpo365-spo/wpo365-spo.php' );
-                    self::show_incompatibility_warning();
-                }                
-            }
-
-            /**
-             * Shows a warning that the plugin is not working correctly until the latest version of the
-             * wpo365-login is installed
-             * 
-             * @since 5.0
+             * @since 2.4
              * 
              * @return void
              */
-            private static function show_incompatibility_warning() {
+            public static function add_no_cache_headers() {
 
-                add_action( 'admin_notices', function() {
+                if( headers_sent() ) {
 
-                    echo '<div class="notice notice-error"><p>' . __( 'Please install version 1.0 or higher of the <strong>WPO365-spo (SharePoint)</strong> plugin (currently disabled)' ) . '</p></div>';
-                }, 10, 0 );
+                    Logger::write_log( 'ERROR', 'Could not write additional headers to prevent caching because headers already sent.' );
+                    return;
+                }
+
+                if( defined( 'WPO_NOCACHE' ) && true === WPO_NOCACHE ) {
+
+                    // set headers to NOT cache a page
+                    nocache_headers();
+                    return;
+                }
             }
         }
     }
+
+?>

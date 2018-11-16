@@ -10,5 +10,6 @@ return array(
     'Wpo\\User\\' => array($baseDir . '/Wpo/User'),
     'Wpo\\Firebase\\JWT\\' => array($baseDir . '/Wpo/Firebase/JWT'),
     'Wpo\\Aad\\' => array($baseDir . '/Wpo/Aad'),
+    'Wpo\\API\\' => array($baseDir . '/Wpo/API'),
     'Wpo\\' => array($baseDir . '/Wpo'),
 );
