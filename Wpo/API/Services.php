@@ -13,7 +13,7 @@
         /**
          * Gets the tokencache with all available bearer tokens
          *
-         * @since 4.7
+         * @since 6.0
          *
          * @return void
          */
@@ -45,7 +45,7 @@
          * Checks for valid nonce and whether user is logged on and returns WP_User if OK or else
          * writes error response message and return it to requester
          *
-         * @since 4.7
+         * @since 6.0
          *
          * @param   string      $error_message_fragment used to write a specific error message to the log
          * @return  WP_User if verified or else error response is returned to requester
@@ -76,7 +76,7 @@
          * Stops the execution of the program flow when a key is not found in the the global $_POST
          * variable and returns a given error message
          *
-         * @since 4.7
+         * @since 6.0
          *
          * @param   array   $keys array of keys to search for
          * @return void
@@ -95,7 +95,7 @@
         /**
          * Helper method to standardize response returned from a Pintra AJAX request
          *
-         * @since 4.7
+         * @since 6.0
          *
          * @param   string  $status OK or NOK
          * @param   string  $message customer message returned to requester

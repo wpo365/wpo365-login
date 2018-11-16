@@ -55,7 +55,7 @@
             /**
              * Adds the Search Center short code that injects the Search Center template 
              * 
-             * @since 4.7
+             * @since 6.0
              * 
              * @param array short code parameters according to Wordpress codex
              * @param string content found in between the short code start and end tag
@@ -91,7 +91,7 @@
              * When multisite and when using Redux then try and obtain settings from the main site 
              * in the network
              * 
-             * @since 4.7
+             * @since 6.0
              * 
              * @return void
              */
@@ -110,7 +110,7 @@
              * Checks whether the mandatory fields have been configured once the
              * plugin is activate
              * 
-             * @since 4.7
+             * @since 6.0
              * 
              * @param $exit boolean True if the user should be sent to the login form, otherwise false.
              * 

@@ -385,7 +385,7 @@
              * Gets an access token in exchange for an authorization token that was received prior when getting
              * an OpenId Connect token or for a fresh code in case available
              *
-             * @since   4.7
+             * @since   6.0
              *
              * @return mixed(string|WP_Error) access token with expiry as string in format expiry,bearer
              */
@@ -525,7 +525,7 @@
             /**
              * Helper to validate an oauth access token
              *
-             * @since   4.7
+             * @since   6.0
              *
              * @param   object  access token as PHP std object
              * @return  mixed(stdClass|WP_Error) Access token as standard object or WP_Error when invalid   
@@ -604,7 +604,7 @@
             /**
              * Retrieves the sub domain part of a Resource URI e.g. graph for https://graph.microsoft.com
              * 
-             * @since 4.7
+             * @since 6.0
              * 
              * @param $resource_uri string e.g. https://yourtenant.sharepoint.com
              * 
@@ -628,7 +628,7 @@
              * Checks the configured scenario and the pages black list settings to
              * decide whether or not authentication of the current page is needed.
              * 
-             * @since 4.7
+             * @since 6.0
              * 
              * @return  boolean     True if validation should be skipped, otherwise false.
              */
@@ -682,7 +682,7 @@
              * if not found starts the Sign in with Microsoft authentication flow 
              * by redirecting the user to Microsoft's IDP.
              * 
-             * @since 4.7
+             * @since 6.0
              * 
              * @return void
              */
@@ -748,7 +748,7 @@
                 return get_site_url();
             }
 
-            /* EVERYTHING BELOW THIS LINE IS DEPRECATED SINCE VERSION 4.7 */
+            /* EVERYTHING BELOW THIS LINE IS DEPRECATED SINCE VERSION 6.0 */
 
             /**
              * Returns user meta if found or else false
@@ -808,7 +808,7 @@
              * 
              * @deprecated helper function temporarily used to patch legacy conflicts
              * 
-             * @since 4.7
+             * @since 6.0
              * 
              * @param $key
              * 
@@ -846,7 +846,7 @@
              * Searches for an existing access token given the user meta data key
              * And if found checks if expired.
              * 
-             * @deprecated deprecated since 4.7 - please use Auth::get_bearer_token instead
+             * @deprecated deprecated since 6.0 - please use Auth::get_bearer_token instead
              * 
              * @since 4.0
              * 
@@ -884,7 +884,7 @@
              * Gets an access token in exchange for an authorization token that was received prior when getting
              * an OpenId Connect token or for a fresh code in case available
              * 
-             * @deprecated deprecated since 4.7 - please use get_bearer_token
+             * @deprecated deprecated since 6.0 - please use get_bearer_token
              *
              * @since   4.0
              *
@@ -900,7 +900,7 @@
                     return false;
                 }
 
-                // Patch legacy resource naming (since 4.7)
+                // Patch legacy resource naming (since 6.0)
                 $resource = self::get_resource_name_from_id( $resource_uri );
 
                 if( is_wp_error( $resource ) ) {
@@ -1011,7 +1011,7 @@
              *
              * @since   4.0
              * 
-             * @deprecated deprecated since 4.7 - please use validate_bearer_token
+             * @deprecated deprecated since 6.0 - please use validate_bearer_token
              *
              * @param   object  access token as PHP std object
              * @return  object  access token as PHP std object or false if not valid
