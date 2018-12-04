@@ -136,10 +136,14 @@
 
                 // Obfuscated user's wp id
                 $obfuscated_user_id = $expiry + $wp_usr->ID;
+                $wpo_auth = new \stdClass();
+                $wpo_auth->expiry = $expiry;
+                $wpo_auth->ouid = $obfuscated_user_id;
+
                 update_user_meta( 
                     get_current_user_id(),
                     Auth::USR_META_WPO365_AUTH,
-                    "$expiry,$obfuscated_user_id" );
+                    json_encode( $wpo_auth ) );
 
                 return $wp_usr;
             }

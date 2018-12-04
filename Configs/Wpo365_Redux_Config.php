@@ -22,7 +22,7 @@
         // This is where your data is stored in the database and also becomes your global variable name.
         'display_name'         => 'Wordpress + Office 365 - login',
         // Name that appears at the top of your panel
-        'display_version'      => '6.0',
+        'display_version'      => '6.1',
         // Version that appears at the top of your panel
         'menu_type'            => 'menu',
         //Specify if the admin menu should appear or not. Options: menu or submenu (Under appearance only)
@@ -182,6 +182,16 @@
                 'desc'     => __( 'Your default (cloud-only) O365 domain e.g. mycompany.onmicrosoft.com', 'wpo-365-options' ),
             ),
             array(
+                'id'       => 'use_v2',
+                'type'     => 'checkbox',
+                'title'    => __( 'Use Azure AD v2.0 endpoint', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/azure-ad-v2/"><strong>help</strong></a>]',
+                'desc'     => __( 'The updated v2.0 implementation of the authorization model (preview)', 'wpo-365-options' ),
+                'default'  => '0',
+                'hint'     => array(
+                    'content' => 'Only switch to v2.0 if know what you are doing and/or you want to benefit from the possibility to allow users from any AD tenant and/or MSA accounts to register.',
+                )
+            ),
+            array(
                 'id'       => 'application_id',
                 'type'     => 'text',
                 'title'    => __( 'AAD Application ID', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/azure-ad-application-id/"><strong>help</strong></a>]',
@@ -218,17 +228,6 @@
                 //    'content' => 'You can find this in the Azure Portal. Click Azure Active Directory, click App Registrations, choose the application and locate the Application ID URI on the application page.',
                 //)
             ),
-            array(
-                'id'       => 'scope',
-                'type'     => 'text',
-                'title'    => __( 'Scope', 'wpo-365-options' ) . ' [<a target="_blank" href="https://www.wpo365.com/scope-open-connect-id/"><strong>help</strong></a>]',
-                'desc'     => __( 'A space-separated list of scopes', 'wpo-365-options' ),
-                //'subtitle' => __( 'Example subtitle.', 'wpo-365-options' ),
-                'hint'     => array(
-                    'content' => 'For OpenID Connect, it must include the scope openid, which translates to the \'Sign you in\' permission in the consent UI. You may also include other scopes in this request for requesting consent.',
-                ),
-                'default'     => 'openid'
-           ),
             array(
                 'id'       => 'redirect_url',
                 'type'     => 'text',

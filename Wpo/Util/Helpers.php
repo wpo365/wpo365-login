@@ -120,14 +120,12 @@
                 $directory_id = self::get_global_var( 'WPO_DIRECTORY_ID' );
                 $application_id = self::get_global_var( 'WPO_APPLICATION_ID' );
                 $redirect_url = self::get_global_var( 'WPO_REDIRECT_URL' );
-                $scope = self::get_global_var( 'WPO_SCOPE' );
                 $resource = self::get_global_var( 'WPO_RESOURCE_azure_ad' );
 
                 // Check if WPO365 is unconfigured and if so redirect to login page
                 if( ( is_wp_error( $directory_id ) 
                     || is_wp_error( $application_id ) 
                     || is_wp_error( $redirect_url )
-                    || is_wp_error( $scope )
                     || is_wp_error( $resource ) ) ) {
                         Logger::write_log( 'ERROR', 'WPO365 not configured' );
 
@@ -469,7 +467,7 @@
                     'WPO_RESOURCE_azure_ad'             => 'aad_resource_uri',
                     'WPO_APP_ID_URI'                    => 'application_uri',
                     'WPO_APPLICATION_SECRET'            => 'application_secret',
-                    'WPO_SCOPE'                         => 'scope',
+                    // 'WPO_SCOPE'                         => 'scope',
                     'WPO_REDIRECT_URL'                  => 'redirect_url',
                     'WPO_NONCE_SECRET'                  => 'nonce_secret',
                     'WPO_GOTO_AFTER_SIGNON_URL'         => 'goto_after_signon_url',
@@ -496,6 +494,7 @@
                     'WPO_ERROR_TAMPERED_WITH'           => 'WPO_ERROR_TAMPERED_WITH',
                     'WPO_ERROR_USER_NOT_FOUND'          => 'WPO_ERROR_USER_NOT_FOUND',
                     'WPO_ERROR_NOT_IN_GROUP'            => 'WPO_ERROR_NOT_IN_GROUP',
+                    'WPO_USE_V2'                        => 'use_v2',
                 );
 
                 if( empty( $redux_keys[ $name ] ) ) {

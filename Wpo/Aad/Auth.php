@@ -15,7 +15,13 @@
         class Auth {
 
             const USR_META_WPO365_AUTH          = 'WPO365_AUTH';
-            const USR_META_WPO365_AUTH_CODE     = 'WPO365_AUTH_CODE';        
+            const USR_META_WPO365_AUTH_CODE     = 'WPO365_AUTH_CODE';
+
+            // Used by AAD v2.0
+            const USR_META_REFRESH_TOKEN        = 'wpo_refresh_token';
+            const USR_META_ACCESS_TOKEN         = 'wpo_access_token';
+
+            // Used by AAD v1.0
             const USR_META_REFRESH_TOKEN_PREFIX = 'wpo_refresh_token_for_';
             const USR_META_ACCESS_TOKEN_PREFIX  = 'wpo_access_token_for_';
 
@@ -89,31 +95,6 @@
             }
 
             /**
-             * Verifies whether a user meta field that is formatted as 'expiration,value'  
-             * is expired according to its expiration fragment and if expired will delete
-             * the user meta field.
-             *
-             * @since   2.0
-             *
-             * @param   string  $key as user meta key
-             * @param   string  $value as user meta vaue formatted as 'expiration,value'
-             * @return  boolean True when expired or else false.
-             */
-            public static function check_user_meta_is_expired( $key, $value ) {
-                $value_with_expiry  = explode( ',', $value );
-
-                if( sizeof( $value_with_expiry ) != 2
-                    || intval( $value_with_expiry[0] ) < time() ) { 
-
-                        delete_user_meta( get_current_user_id(), $key );
-                        Logger::write_log( 'DEBUG', 'Expired user meta deleted for ' . $key );
-                        return true;
-                }
-
-                return false;
-            }
-
-            /**
              * Constructs the oauth authorize URL that is the end point where the user will be sent for authorization.
              * 
              * @since 4.0
@@ -121,6 +102,10 @@
              * @return string if everthing is configured OK a valid authorization URL
              */
             public static function get_oauth_url() {
+                // Return the AAD v2.0 URL if configured so
+                if( Helpers::get_global_boolean_var( 'WPO_USE_V2' ) )
+                    return self::get_v2_oauth_url();
+                
                 // Global vars have been checked prior to this
                 $redirect_url = Helpers::get_global_var( 'WPO_REDIRECT_URL' );
 
@@ -129,7 +114,7 @@
                     'response_type' => 'id_token code',
                     'redirect_uri'  => $redirect_url,
                     'response_mode' => 'form_post',
-                    'scope'         => Helpers::get_global_var( 'WPO_SCOPE' ),
+                    'scope'         => 'openid',
                     'resource'      => Helpers::get_global_var( 'WPO_RESOURCE_azure_ad' ),
                     'state'         => ( strpos( $redirect_url, 'https' ) !== false ? 'https' : 'http' ) . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]",
                     'nonce'         => Helpers::get_nonce(),
@@ -138,6 +123,33 @@
                 $directory_id = Helpers::get_global_var( 'WPO_DIRECTORY_ID' );
 
                 $oauth_url = 'https://login.microsoftonline.com/' . $directory_id . '/oauth2/authorize?' . http_build_query( $params, '', '&' );
+                return $oauth_url;
+            }
+
+            /**
+             * Constructs the oauth authorize URL that is the end point where the user will be sent for authorization.
+             * 
+             * @since 6.1
+             * 
+             * @return string if everthing is configured OK a valid authorization URL
+             */
+            public static function get_v2_oauth_url() {
+                // Global vars have been checked prior to this
+                $redirect_url = Helpers::get_global_var( 'WPO_REDIRECT_URL' );
+
+                $params = array( 
+                    'client_id'     => Helpers::get_global_var( 'WPO_APPLICATION_ID' ),
+                    'response_type' => 'id_token code',
+                    'redirect_uri'  => $redirect_url,
+                    'response_mode' => 'form_post',
+                    'scope'         => 'openid email profile',
+                    'state'         => ( strpos( $redirect_url, 'https' ) !== false ? 'https' : 'http' ) . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]",
+                    'nonce'         => Helpers::get_nonce(),
+                );
+
+                $directory_id = Helpers::get_global_var( 'WPO_DIRECTORY_ID' );
+
+                $oauth_url = 'https://login.microsoftonline.com/' . $directory_id . '/oauth2/v2.0/authorize?' . http_build_query( $params, '', '&' );
                 return $oauth_url;
             }
 
@@ -169,7 +181,6 @@
              * @return  void
              */
             public static function process_openidconnect_token() {
-
                 if( false === isset( $_POST[ 'state' ] )
                     || false === isset( $_POST[ 'id_token' ] ) )
                         return;
@@ -202,11 +213,14 @@
                 // Store the Authorization Code for extensions that may need it to obtain access codes for AAD secured resources
                 if( isset( $_POST[ 'code' ] ) ) {
                     // Session valid until
-                    $expiry = time() + 3480;
+                    $auth_code = new \stdClass();
+                    $auth_code->expiry = time() + 3480;
+                    $auth_code->code = $_POST[ 'code' ];
+
                     update_user_meta(
                         get_current_user_id(), 
                         Auth::USR_META_WPO365_AUTH_CODE, 
-                        ''. $expiry . ',' . $_POST[ 'code' ] );
+                        json_encode( $auth_code ) );
                 }
 
                 // @deprecated
@@ -227,9 +241,6 @@
             /**
              * Unraffles the incoming JWT id_token with the help of Firebase\JWT and the tenant specific public keys available from Microsoft.
              * 
-             * NOTE The refresh token is not used because it cannot be used to authenticate a user ( no id_token )
-             * See https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-protocols-openid-connect-code 
-             *
              * @since   1.0
              *
              * @return  void 
@@ -322,14 +333,16 @@
                 }
                 
                 Logger::write_log( 'DEBUG', 'Retrieving fresh MSFT public keys to decrypt the JWT token' );
-                $ms_keys_url = 'https://login.microsoftonline.com/common/discovery/keys';
+                $v2 = Helpers::get_global_boolean_var( 'WPO_USE_V2' ) 
+                    ? '/v2.0' 
+                    : '';
+                $ms_keys_url = "https://login.microsoftonline.com/common/discovery$v2/keys";
+                
                 $curl = curl_init();
-
                 curl_setopt( $curl, CURLOPT_URL, $ms_keys_url );
                 curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
 
-                $skip_ssl_host_verification = Helpers::get_global_var( 'WPO_SKIP_SSL_HOST_VERIFICATION' );
-                if( $skip_ssl_host_verification === true || $skip_ssl_host_verification === "1" ) {
+                if( true === Helpers::get_global_boolean_var( 'WPO_SKIP_SSL_HOST_VERIFICATION' ) ) {
                         curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, 0 ); 
                         curl_setopt( $curl, CURLOPT_SSL_VERIFYHOST, 0 ); 
                 }
@@ -374,7 +387,7 @@
                 }
 
                 if( true === $allow_refresh ) {
-                    $new_keys = self::discover_ms_public_keys( $true ); // Keys not found so lets refresh the cache
+                    $new_keys = self::discover_ms_public_keys( true ); // Keys not found so lets refresh the cache
                     return self::retrieve_ms_public_key( $kid, $new_keys, false );
                 }
  
@@ -387,78 +400,71 @@
              *
              * @since   6.0
              *
-             * @return mixed(string|WP_Error) access token with expiry as string in format expiry,bearer
+             * @return mixed(stdClass|WP_Error) access token 
              */
             public static function get_bearer_token( $resource_uri ) {
+
+                Logger::write_log( 'DEBUG', 'GET BEARER TOKEN' );
 
                 // Don't even start if the user is not logged in
                 if( !is_user_logged_in() )
                     return new \WP_Error( '1000', 'Cannot retrieve a bearer token for a user that is not logged in' );
 
+                // Get resource nice name e.g. https://graph.microsoft.com => graph.microsoft.com
                 $resource = self::get_resource_name_from_id( $resource_uri );
 
                 if( is_wp_error( $resource ) )
                     return new \WP_Error( '1010', $resource->get_error_message() );
 
                 // Tokens are stored by default as user metadata
-                $access_token_user_meta_key = Auth::USR_META_ACCESS_TOKEN_PREFIX . $resource;
-                $access_token_user_meta_value = get_user_meta( 
+                $cached_access_token_key = Auth::USR_META_ACCESS_TOKEN_PREFIX . $resource;
+                $cached_access_token_json = get_user_meta( 
                     get_current_user_id(), 
-                    $access_token_user_meta_key, 
+                    $cached_access_token_key, 
                     true );
-                $access_token_user_meta_value_segments = empty( $access_token_user_meta_value ) ? array() : explode( ',', $access_token_user_meta_value );
+                
+                
+                if( !empty( $cached_access_token_json ) ) {
+                    $access_token = json_decode( $cached_access_token_json );
 
-                // Valid access token was saved previously
-                if( !empty( $access_token_user_meta_value_segments ) ) {
-                    Logger::write_log( 'DEBUG', 'Found a previously saved access token' );
-                    
-                    if( !Auth::check_user_meta_is_expired( 
-                        $access_token_user_meta_key, 
-                        $access_token_user_meta_value ) ) {
-                            Logger::write_log( 'DEBUG', 'Found a previously saved access token that is still valid' );
-
-                            return $access_token_user_meta_value;
+                    // json_decode returns NULL if an "old" token is found
+                    if( empty ($access_token ) || ( isset( $access_token->expiry ) && $access_token->expiry < time() ) )
+                        delete_user_meta( get_current_user_id(), $cached_access_token_key );
+                    else {
+                        Logger::write_log( 'DEBUG', 'Found a previously saved access token that is still valid' );
+                        Logger::write_log( 'DEBUG', $access_token );
+                        return $access_token;
                     }
                 }
 
-                $params = array();
+                $params = array(
+                    'client_id' => Helpers::get_global_var( 'WPO_APPLICATION_ID' ),
+                    'client_secret' => Helpers::get_global_var( 'WPO_APPLICATION_SECRET' ),
+                    'redirect_uri' => Helpers::get_global_var( 'WPO_REDIRECT_URL' ),
+                    'resource' => $resource_uri,
+                );
 
                 // Check if we have a refresh token and if not fallback to the auth code
-                $refresh_token = Auth::get_refresh_token_for_resource( $resource );
+                $refresh_token = self::get_refresh_token();
+
                 if( !empty( $refresh_token) ) {
-                    $params = array( 
-                        'grant_type' => 'refresh_token',
-                        'client_id' => Helpers::get_global_var( 'WPO_APPLICATION_ID' ),
-                        'refresh_token' => $refresh_token,
-                        'resource' => $resource_uri,
-                        'client_secret' => Helpers::get_global_var( 'WPO_APPLICATION_SECRET' )
-                    );
+                    $params[ 'grant_type' ] = 'refresh_token';
+                    $params[ 'refresh_token' ] = $refresh_token->refresh_token;
                 }
                 else {
-                    $auth_code = get_user_meta( 
-                        get_current_user_id(),
-                        Auth::USR_META_WPO365_AUTH_CODE,
-                        true );
-                    $auth_code = Auth::check_user_meta_is_expired( Auth::USR_META_WPO365_AUTH_CODE, $auth_code ) ? null : $auth_code;
-
+                    $auth_code = self::get_auth_code();
+                    
                     if( !empty( $auth_code ) ) {
-                        $auth_code_segments = explode( ',', $auth_code );
-    
-                        $params = array( 
-                            'grant_type' => 'authorization_code',
-                            'client_id' => Helpers::get_global_var( 'WPO_APPLICATION_ID' ),
-                            'code' => $auth_code_segments[1],
-                            'resource' => $resource_uri,
-                            'redirect_uri' => Helpers::get_global_var( 'WPO_REDIRECT_URL' ),
-                            'client_secret' => Helpers::get_global_var( 'WPO_APPLICATION_SECRET' )
-                        );
+                        $params[ 'grant_type' ] = 'authorization_code';
+                        $params[ 'code' ] = $auth_code->code;
+                        // Delete the code since it can only be used once
+                        delete_user_meta( get_current_user_id(), Auth::USR_META_WPO365_AUTH_CODE );
                     }
                 }
 
-                if( empty( $params ) ) {
+                if( !isset( $params[ 'grant_type' ] ) ) {
                     $error_message = 'No authorization code and refresh token found when trying to get an access token for ' . $resource . ' (Send a new interactive authorization for this user and resource).';
                     Logger::write_log( 'ERROR', $error_message );
-
                     return new \WP_Error( '1030', $error_message );
                 }
 
@@ -496,30 +502,158 @@
                 curl_close( $curl );
 
                 // Validate the access token and return it
-                $access_token_obj = json_decode( $result );
-                $access_token_obj = Auth::validate_bearer_token( $access_token_obj );
+                $access_token = json_decode( $result );
+                $access_token = Auth::validate_bearer_token( $access_token );
 
-                if( is_wp_error( $access_token_obj ) ) {
+                if( is_wp_error( $access_token ) ) {
                     Logger::write_log( 'ERROR', 'Access token for ' . $resource . ' appears to be invalid' );
-
-                    return new \WP_Error( $access_token_obj->get_error_code(), $access_token_obj->get_error_message() );
+                    return new \WP_Error( $access_token->get_error_code(), $access_token->get_error_message() );
                 }
 
                 // Store the new token as user meta with the shorter ttl of both auth and token
-                $expiry = time() + intval( $access_token_obj->expires_in );
-                $access_token_with_expiry = strval( $expiry ) . ',' . $access_token_obj->access_token;
-                update_user_meta( 
+                $access_token->expiry = time() + intval( $access_token->expires_in );
+                update_user_meta(
                     get_current_user_id(), 
-                    $access_token_user_meta_key, 
-                    $access_token_with_expiry );
+                    $cached_access_token_key, 
+                    json_encode( $access_token ) );
 
                 // Save refresh token
-                Auth::set_refresh_token_for_resource( $resource, $access_token_obj->refresh_token );
+                if( isset( $access_token->refresh_token ) )
+                    Auth::set_refresh_token( $access_token );
 
                 Logger::write_log( 'DEBUG', 'Successfully obtained a valid access token for ' . $resource );
-                Logger::write_log( 'DEBUG', $access_token_with_expiry );
+                Logger::write_log( 'DEBUG', $access_token );
 
-                return $access_token_with_expiry;
+                return $access_token;
+            }
+
+            /**
+             * Gets an access token in exchange for an authorization token that was received prior when getting
+             * an OpenId Connect token or for a fresh code in case available. This method is only compatible with 
+             * AAD v2.0
+             *
+             * @since 6.1
+             * 
+             * @param $scope string Scope for AAD v2.0 e.g. https://graph.microsoft.com/user.read
+             *
+             * @return mixed(stdClass|WP_Error) access token as object or WP_Error
+             */
+            public static function get_bearer_token_v2( $scope ) {
+
+                Logger::write_log( 'DEBUG', 'GET BEARER TOKEN V2' );
+
+                // Don't even start if the user is not logged in
+                if( !is_user_logged_in() )
+                    return new \WP_Error( '1000', 'Cannot retrieve a bearer token for a user that is not logged in' );
+                
+                // Tokens are stored by default as user metadata
+                $cached_access_token_json = get_user_meta( 
+                    get_current_user_id(), 
+                    self::USR_META_ACCESS_TOKEN, 
+                    true );
+                
+                // Valid access token was saved previously
+                if( !empty( $cached_access_token_json ) ) {
+                    $access_token = json_decode( $cached_access_token_json );
+                    Logger::write_log( 'DEBUG', 'Found a previously saved access token' );
+                    Logger::write_log( 'DEBUG', $access_token );
+                    
+                    if( isset( $access_token->expiry ) && intval( $access_token->expiry ) < time() )
+                        delete_user_meta( get_current_user_id(), self::USR_META_ACCESS_TOKEN );
+                    elseif( isset( $access_token->scope ) && false !== strpos( strtolower( $access_token->scope ), $scope ) ) {
+                        Logger::write_log( 'DEBUG', 'Found a previously saved access token that is still valid' );
+                        return $access_token;
+                    }
+                }
+
+                $params = array(
+                    'client_id' => Helpers::get_global_var( 'WPO_APPLICATION_ID' ),
+                    'client_secret' => Helpers::get_global_var( 'WPO_APPLICATION_SECRET' ),
+                    'redirect_uri' => Helpers::get_global_var( 'WPO_REDIRECT_URL' ),
+                    'scope' => 'offline_access ' . $scope, // Request offline_access to get a refresh token
+                );
+
+                // Check if we have a refresh token and if not fallback to the auth code
+                $refresh_token = Auth::get_refresh_token();
+
+                if( !empty( $refresh_token) ) {
+                    $params[ 'grant_type' ] = 'refresh_token';
+                    $params[ 'refresh_token' ] = $refresh_token->refresh_token;
+                }
+                else {
+                    $auth_code = self::get_auth_code();
+
+                    if( !empty( $auth_code ) ) {
+                        $params[ 'grant_type' ] = 'authorization_code';
+                        $params[ 'code' ] = $auth_code->code;
+                        // Delete the code since it can only be used once
+                        delete_user_meta( get_current_user_id(), Auth::USR_META_WPO365_AUTH_CODE );
+                    }
+                }
+
+                if( !isset( $params[ 'grant_type' ] ) ) {
+                    $error_message = 'No authorization code and refresh token found when trying to get an access token for ' . $resource . ' (Send a new interactive authorization for this user and resource).';
+                    Logger::write_log( 'ERROR', $error_message );
+                    return new \WP_Error( '1030', $error_message );
+                }
+
+                Logger::write_log( 'DEBUG', 'Requesting access token for ' . $scope );
+                
+                $params_as_str = http_build_query( $params, '', '&' ); // Fix encoding of ampersand
+                $authorizeUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
+                
+                $curl = curl_init();
+                curl_setopt( $curl, CURLOPT_POST, 1 );
+                curl_setopt( $curl, CURLOPT_URL, $authorizeUrl );
+                curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
+                curl_setopt( $curl, CURLOPT_POSTFIELDS, $params_as_str );
+                curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 
+                    'Content-Type: application/x-www-form-urlencoded'
+                ) );
+
+                if( true === Helpers::get_global_boolean_var( 'WPO_SKIP_SSL_HOST_VERIFICATION' ) ) {
+                    
+                    Logger::write_log( 'DEBUG', 'Skipping SSL peer and host verification' );
+                    curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, 0 ); 
+                    curl_setopt( $curl, CURLOPT_SSL_VERIFYHOST, 0 ); 
+                }
+            
+                $result = curl_exec( $curl ); // result holds the tokens
+            
+                if( curl_error( $curl ) ) {
+                    $error_message = 'Error occured whilst getting an access token';
+                    Logger::write_log( 'ERROR', $error_message );
+                    curl_close( $curl );
+
+                    return new \WP_Error( '1040', curl_error( $curl ) );
+                }
+            
+                curl_close( $curl );
+
+                // Validate the access token and return it
+                $access_token = json_decode( $result );
+                $access_token = Auth::validate_bearer_token( $access_token );
+
+                if( is_wp_error( $access_token ) ) {
+                    Logger::write_log( 'ERROR', 'Access token for ' . $scope . ' appears to be invalid' );
+                    return new \WP_Error( $access_token->get_error_code(), $access_token->get_error_message() );
+                }
+
+                // Store the new token as user meta with the shorter ttl of both auth and token
+                $access_token->expiry = time() + intval( $access_token->expires_in );
+                update_user_meta( 
+                    get_current_user_id(), 
+                    self::USR_META_ACCESS_TOKEN, 
+                    json_encode( $access_token ) );
+
+                // Save refresh token
+                if( isset( $access_token->refresh_token ) )
+                    Auth::set_refresh_token( $access_token );
+                
+                Logger::write_log( 'DEBUG', 'Successfully obtained a valid access token for ' . $scope );
+                Logger::write_log( 'DEBUG', $access_token );
+
+                return $access_token;
             }
 
             /**
@@ -529,7 +663,7 @@
              *
              * @param   object  access token as PHP std object
              * @return  mixed(stdClass|WP_Error) Access token as standard object or WP_Error when invalid   
-             * @todo    make by reference instead by value
+             * @todo    Improve by verifying against requested scope
              */
             private static function validate_bearer_token( $access_token_obj ) {
 
@@ -543,9 +677,8 @@
                     || $access_token_obj === false
                     || !isset( $access_token_obj->access_token ) 
                     || !isset( $access_token_obj->expires_in ) 
-                    || !isset( $access_token_obj->refresh_token )
                     || !isset( $access_token_obj->token_type )
-                    || !isset( $access_token_obj->resource )
+                    || !isset( $access_token_obj->scope )
                     || strtolower( $access_token_obj->token_type ) != 'bearer' ) {
             
                     Logger::write_log( 'ERROR', 'Incomplete access code detected' );
@@ -559,46 +692,84 @@
              * Tries and find a refresh token for an AAD resource stored as user meta in the form "expiration,token"
              * In case an expired token is found it will be deleted
              *
-             * @since   4.0
+             * @since   5.1
              * 
              * @param   string  $resource   Name for the resource key used to store that resource in the site options
-             * @return  string  Refresh token or an empty string if not found or when expired
+             * @return  (stdClass|NULL)  Refresh token or an empty string if not found or when expired
              */
-            private static function get_refresh_token_for_resource( $resource ) {
-                $usr_meta_key = Auth::USR_META_REFRESH_TOKEN_PREFIX . $resource;
-                $usr_meta_value = get_user_meta( 
+            private static function get_refresh_token() {
+                $cached_refresh_token_json = get_user_meta( 
                     get_current_user_id(),
-                    $usr_meta_key,
+                    Auth::USR_META_REFRESH_TOKEN,
                     true );
-
-                if( empty( $usr_meta_value ) || Auth::check_user_meta_is_expired( $usr_meta_key, $usr_meta_value ) ) {
-                        Logger::write_log( 'DEBUG', 'Could not find a valid refresh token for ' . $resource );
-                        return '';
+                
+                if( empty( $cached_refresh_token_json ) )
+                    return NULL;
+                
+                $refresh_token = json_decode( $cached_refresh_token_json );
+                Logger::write_log( 'DEBUG', 'Found a previously saved refresh token' );
+                
+                if( isset( $refresh_token->expiry ) && intval( $refresh_token->expiry ) < time() )
+                    delete_user_meta( get_current_user_id(), Auth::USR_META_REFRESH_TOKEN );
+                else {
+                    Logger::write_log( 'DEBUG', 'Found a previously saved valid refresh token' );
+                    return $refresh_token;
                 }
-
-                Logger::write_log( 'DEBUG', 'Found refresh token in user meta for ' . $resource );
-                $usr_meta_value_segments = explode( ',', $usr_meta_value);
-                return $usr_meta_value_segments[1];
+                
+                Logger::write_log( 'DEBUG', 'Could not find a valid refresh token' );
+                return NULL;
             }
 
             /**
-             * Sets a refresh token as user meta in the form "expiration,token"
-             *
-             * @since   4.0
+             * Helper method to persist a refresh token as user meta.
              * 
-             * @param   string  $resource name   Name for the resource key as used to store that resource in the site options
-             * @return  void or false if not able to store the token
+             * @since 5.1
+             * 
+             * @param stdClass $access_token Access token as standard object (from json)
+             * @return void
              */
-            private static function set_refresh_token_for_resource( $resource, $refresh_token ) {
+            private static function set_refresh_token( $access_token ) {
 
-                $usr_meta_key = Auth::USR_META_REFRESH_TOKEN_PREFIX . $resource;
-                $refresh_token_with_expiry = strval( time( ) + 1209600 ) . ',' . $refresh_token;
+                $refresh_token = new \stdClass();
+                $refresh_token->refresh_token = $access_token->refresh_token;
+                $refresh_token->scope = $access_token->scope;
+                $refresh_token->expiry = time( ) + 1209600;
+                
                 update_user_meta( 
                     get_current_user_id(),
-                    $usr_meta_key,
-                    $refresh_token_with_expiry );
+                    self::USR_META_REFRESH_TOKEN,
+                    json_encode( $refresh_token ) );
 
-                Logger::write_log( 'DEBUG', 'Successfully stored refresh token as user meta for ' . $resource );
+                Logger::write_log( 'DEBUG', 'Successfully stored refresh token' );
+            }
+
+            /**
+             * Tries and find an authorization code stored as user meta
+             * In case an expired token is found it will be deleted
+             * 
+             * @since 5.2
+             * 
+             * @return (stdClass|NULL)
+             */
+            private static function get_auth_code() {
+                $auth_code_value = get_user_meta( 
+                    get_current_user_id(),
+                    Auth::USR_META_WPO365_AUTH_CODE,
+                    true );
+                
+                if( empty( $auth_code_value ) ) 
+                    return NULL;
+
+                $auth_code = json_decode( $auth_code_value );
+                
+                if( empty( $auth_code ) )
+                    return NULL;
+
+                if( isset( $auth_code->expiry ) && intval( $auth_code->expiry ) < time() )
+                    delete_user_meta( get_current_user_id(), Auth::USR_META_WPO365_AUTH_CODE );
+                else
+                    return $auth_code;
+                return NULL;
             }
 
             /**
@@ -687,25 +858,26 @@
              * @return void
              */
             private static function authenticate() {
-                $wpo_auth = get_user_meta(
+                $wpo_auth_value = get_user_meta(
                     get_current_user_id(),
                     Auth::USR_META_WPO365_AUTH,
                     true );
 
                 // Logged-on WP-only user
-                if( is_user_logged_in() && empty( $wpo_auth ) ) {
+                if( is_user_logged_in() && empty( $wpo_auth_value ) ) {
                     Logger::write_log( 'DEBUG', 'User is a Wordpress-only user so no authentication is required' );
                     return;
                 }
                 
                 // User not logged on
-                if( empty( $wpo_auth ) ) {                    
+                if( empty( $wpo_auth_value ) ) {                    
                     Auth::get_openidconnect_and_oauth_token();
                     return;
                 }
 
                 // Check if user has expired 
-                if( Auth::check_user_meta_is_expired( Auth::USR_META_WPO365_AUTH, $wpo_auth ) ) {
+                $wpo_auth = json_decode( $wpo_auth_value );
+                if( !isset( $wpo_auth->expiry ) || $wpo_auth->expiry < time() ) {
                     do_action( 'destroy_wpo365_session' );
                 
                     // Don't call wp_logout because it may be extended
@@ -747,359 +919,6 @@
 
                 return get_site_url();
             }
-
-            /* EVERYTHING BELOW THIS LINE IS DEPRECATED SINCE VERSION 6.0 */
-
-            /**
-             * Returns user meta if found or else false
-             * 
-             * @deprecated Method returns mixed result and should therefore no longer be used
-             *
-             * @since   2.0
-             *
-             * @param   string  $key as user meta key
-             * @return  user meta as string if found or else NULL for a logged in user or false if user is not logged in
-             */
-            public static function get_unique_user_meta( $key ) {
-
-                if( !is_user_logged_in() ) {
-                    
-                    Logger::write_log( 'DEBUG', 'Cannot look up user meta ' . $key . ' for user that is not logged' );
-                    return false;
-                }
-
-                $key = self::update_legacy_user_meta_key( $key );
-
-                $usr_meta = get_user_meta( get_current_user_id(), $key, true );
-                return empty( $usr_meta ) ? NULL : $usr_meta;
-            }
-
-            /**
-             * Sets a user meta field in a safe way so that user is logged in and value
-             * is updated instead of added if already exist
-             * 
-             * @deprecated See get_unique_user_meta
-             *
-             * @since   2.0
-             *
-             * @param   string  $key as user meta key
-             * @param   string  $value as user meta value
-             * @return  bool    true if user meta was added or updated or else false
-             */
-            public static function set_unique_user_meta( $key, $value ) {
-                if( !is_user_logged_in() ) {
-                    Logger::write_log( 'DEBUG', 'Cannot look up user meta ' . $key . ' for user that is not logged' );
-                    return false;
-                }
-
-                $key = self::update_legacy_user_meta_key( $key );
-
-                update_user_meta( 
-                    get_current_user_id(), 
-                    $key, 
-                    $value );
-                Logger::write_log( 'DEBUG', 'Updated user meta for ' . $key );
-
-                return true;
-            }
-
-            /**
-             * Helper function to update legacy user meta key for spo_resource
-             * 
-             * @deprecated helper function temporarily used to patch legacy conflicts
-             * 
-             * @since 6.0
-             * 
-             * @param $key
-             * 
-             * @return string possibly updated user meta key for sharepoint access token
-             */
-            private static function update_legacy_user_meta_key( $key ) {
-
-                if( $key == self::USR_META_ACCESS_TOKEN_PREFIX . 'spo_resource' ) {
-
-                    if( !isset( $GLOBALS[ 'pintra_settings' ] )
-                        || !isset( $GLOBALS[ 'pintra_settings' ][ 'spo_resource_uri' ] ) ) {
-
-                        Logger::write_log( 'ERROR', 'Pintra Settings for Microsoft O365 incomplete: Resource URI for SharePoint Online is missing' );
-                        return $key;
-                    }
-
-                    $spo_resource_id = self::get_resource_name_from_id( $GLOBALS[ 'pintra_settings' ][ 'spo_resource_uri' ] );
-                    
-                    if( is_wp_error( $spo_resource_id ) ) {
-
-                        return $key;
-                    }
-                    
-                    $key = self::USR_META_ACCESS_TOKEN_PREFIX . $spo_resource_id;
-                 }
-                 else if( $key == self::USR_META_ACCESS_TOKEN_PREFIX . 'graph_resource' ) {
-
-                    $key = self::USR_META_ACCESS_TOKEN_PREFIX . 'graph.microsoft.com';
-                 }
-
-                 return $key;
-            }
-
-            /**
-             * Searches for an existing access token given the user meta data key
-             * And if found checks if expired.
-             * 
-             * @deprecated deprecated since 6.0 - please use Auth::get_bearer_token instead
-             * 
-             * @since 4.0
-             * 
-             * @param string $user_meta_key User meta key as string
-             * 
-             * @return boolean true if exists otherwise false
-             */
-            public static function access_token_for_resource_exists( $usr_meta_key ) {
-
-                $usr_meta_key = self::update_legacy_user_meta_key( $usr_meta_key );
-                $usr_meta_value = get_user_meta( 
-                    get_current_user_id(),
-                    $usr_meta_key,
-                    true );
-
-                Logger::write_log( 'DEBUG', $usr_meta_key );
-                Logger::write_log( 'DEBUG', $usr_meta_value );
-
-                if( empty( $usr_meta_value ) ) {
-
-                    Logger::write_log( 'DEBUG', 'No access token found for ' . $usr_meta_key );
-                    return false;
-                }
-
-                if( Auth::check_user_meta_is_expired( $usr_meta_key, $usr_meta_value ) ) {
-
-                    return false;
-                }
-
-                Logger::write_log( 'DEBUG', 'Found a valid access token for ' . $usr_meta_key );
-                return true;
-            }
-
-            /**
-             * Gets an access token in exchange for an authorization token that was received prior when getting
-             * an OpenId Connect token or for a fresh code in case available
-             * 
-             * @deprecated deprecated since 6.0 - please use get_bearer_token
-             *
-             * @since   4.0
-             *
-             * @param   string  AAD secured resource for which the access token should give access
-             * @return  mixed(object|boolean)  access token as PHP std object or false if no access token could be retrieved
-             */
-            public static function get_access_token( $resource, $resource_uri ) {
-
-                // Don't even start if the user is not logged in
-                if( !is_user_logged_in() ) {
-
-                    Logger::write_log( 'DEBUG', 'Cannot retrieve an access token for ' . $resource_uri . ' for a user that is not logged in' );
-                    return false;
-                }
-
-                // Patch legacy resource naming (since 6.0)
-                $resource = self::get_resource_name_from_id( $resource_uri );
-
-                if( is_wp_error( $resource ) ) {
-
-                    Logger::write_log( 'ERROR', 'Could not legacy patch resource uri ' . $resource_uri );
-                    return false;
-                }
-
-                Logger::write_log( 'DEBUG', 'Requesting access token for ' . $resource . ' using ' . $resource_uri );
-                
-                // Check to see if a refresh code is available
-                $refresh_token = self::get_refresh_token_for_resource( $resource );
-
-                // Check to see if an authorization code from logging on is available
-                $auth_code = get_user_meta( 
-                    get_current_user_id(),
-                    Auth::USR_META_WPO365_AUTH_CODE,
-                    true );
-
-                // If not check to see if an authorization code is available
-                if( empty( $refresh_token ) && ( 
-                    empty ( $auth_code ) ||                                                                  // no code found
-                    Auth::check_user_meta_is_expired( Auth::USR_META_WPO365_AUTH_CODE, $auth_code ) ) ) {    // code expired
-
-                            Logger::write_log( 'ERROR', 'Could not get access code because of missing authorization or refresh code' );
-                            return false;
-                }
-
-                $params = NULL;
-                if( !empty( $refresh_token ) ) {
-
-                    $params = array( 
-                        'grant_type' => 'refresh_token',
-                        'client_id' => Helpers::get_global_var( 'WPO_APPLICATION_ID' ),
-                        'refresh_token' => $refresh_token,
-                        'resource' => $resource_uri,
-                        'client_secret' => Helpers::get_global_var( 'WPO_APPLICATION_SECRET' )
-                    );
-                }
-                else {
-
-                    $auth_code_segments = explode( ',', $auth_code );
-
-                    $params = array( 
-                        'grant_type' => 'authorization_code',
-                        'client_id' => Helpers::get_global_var( 'WPO_APPLICATION_ID' ),
-                        'code' => $auth_code_segments[1],
-                        'resource' => $resource_uri,
-                        'redirect_uri' => Helpers::get_global_var( 'WPO_REDIRECT_URL' ),
-                        'client_secret' => Helpers::get_global_var( 'WPO_APPLICATION_SECRET' )
-                    );
-                }
-
-                $params_as_str = http_build_query( $params, '', '&' ); // Fix encoding of ampersand
-                $authorizeUrl = 'https://login.microsoftonline.com/common/oauth2/token';
-                
-                $curl = curl_init();
-                curl_setopt( $curl, CURLOPT_POST, 1 );
-                curl_setopt( $curl, CURLOPT_URL, $authorizeUrl );
-                curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
-                curl_setopt( $curl, CURLOPT_POSTFIELDS, $params_as_str );
-                curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 
-                    'Content-Type: application/x-www-form-urlencoded'
-                ) );
-
-                $skip_ssl_host_verification = Helpers::get_global_var( 'WPO_SKIP_SSL_HOST_VERIFICATION' );
-                if( $skip_ssl_host_verification === true || $skip_ssl_host_verification === "1" ) {
-
-                        Logger::write_log( 'DEBUG', 'Skipping SSL peer and host verification' );
-
-                        curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, 0 ); 
-                        curl_setopt( $curl, CURLOPT_SSL_VERIFYHOST, 0 ); 
-
-                }
-            
-                $result = curl_exec( $curl ); // result holds the tokens
-            
-                if( curl_error( $curl ) ) {
-
-                    Logger::write_log( 'ERROR', 'Error occured whilst getting an access token' );
-                    curl_close( $curl );
-
-                    return false;
-                }
-            
-                curl_close( $curl );
-
-                // Validate the access token and return it
-                $access_token_obj = json_decode( $result );
-                $access_token_is_valid = Auth::validate_access_token( $access_token_obj );
-
-                if( $access_token_is_valid === false ) {
-
-                    Logger::write_log( 'ERROR', 'Could not get a valid access token for ' . $resource );
-                    return false;
-                }
-
-                // Save refresh token
-                Auth::set_refresh_token_for_resource( $resource, $access_token_obj->refresh_token );
-
-                Logger::write_log( 'DEBUG', 'Successfully obtained a valid access token for ' . $resource );
-
-                return $access_token_obj;
-            }
-
-            /**
-             * Helper to validate an oauth access token
-             *
-             * @since   4.0
-             * 
-             * @deprecated deprecated since 6.0 - please use validate_bearer_token
-             *
-             * @param   object  access token as PHP std object
-             * @return  object  access token as PHP std object or false if not valid
-             * @todo    make by reference instead by value
-             */
-            private static function validate_access_token( $access_token_obj ) {
-                
-                if( isset( $access_token_obj->error ) ) {
-
-                    Logger::write_log( 'ERROR', 'Error found whilst validating access token: ' . $access_token_obj->error_description );
-                    return false;
-                }
-            
-                if( empty( $access_token_obj ) 
-                    || $access_token_obj === false
-                    || !isset( $access_token_obj->access_token ) 
-                    || !isset( $access_token_obj->expires_in ) 
-                    || !isset( $access_token_obj->refresh_token )
-                    || !isset( $access_token_obj->token_type )
-                    || !isset( $access_token_obj->resource )
-                    || strtolower( $access_token_obj->token_type ) != 'bearer' ) {
-            
-                    Logger::write_log( 'ERROR', 'Incomplete access code detected' );
-                    return false;
-                }
-            
-                return $access_token_obj;
-            }
-
-            /**
-             * Compares ttl of token passed as an argument with the auth cookie ttl and returns the shortest ttl
-             * 
-             * @deprecated Token expiry should not depend on the lifetime of the authorization code
-             *             (instead use refresh token if expired)
-             *
-             * @since 0.1
-             *
-             * @param   int     $expires_in is the ttl in seconds of an oauth access token
-             * @return  int     ttl in seconds possibly corrected for ttl of auth cookie
-             */
-            public static function calculate_shortest_ttl( $token_expires_in ) {
-                $token_expiry = time() + intval( $token_expires_in );
-                $wpo_auth = get_user_meta( 
-                    get_current_user_id(),
-                    Auth::USR_META_WPO365_AUTH,
-                    true );
-                
-                // Check if Wordpress-only user that is already logged on
-                if( is_user_logged_in() && empty( $wpo_auth ) ) {
-                    Logger::write_log( 'DEBUG', 'User is a logged on with a Wordpress-only login so cannot calculate shortest ttl' );
-                    return $token_expiry;
-                }
-                
-                // Check if user either not logged or has login that is no longer valid
-                if( empty( $wpo_auth )
-                    || Auth::check_user_meta_is_expired( Auth::USR_META_WPO365_AUTH, $wpo_auth ) ) { 
-                                
-                        do_action( 'destroy_wpo365_session' );
-                        Logger::write_log( 'DEBUG', 'User either not logged on or has login is not longer valid so instead of caluclating shortest ttl login is refreshed' );
-                        Auth::get_openidconnect_and_oauth_token();
-                }
-
-                $wpo_auth_segments = explode( ',', $wpo_auth );
-                $wpo_auth_expiry  = intval( $wpo_auth_segments[0] );
-
-                return $wpo_auth_expiry < $token_expiry ? $wpo_auth_expiry : $token_expiry;
-            }
-
-            /**
-             * Deletes a user meta field in a safe way so that user is logged in
-             *
-             * @deprecated User the WordPress delete_user_meta instead
-             * 
-             * @since   2.0
-             *
-             * @param   string  $key as user meta key
-             * @return  void if user meta was deleted successfully or false if something went wrong
-             */
-            public static function delete_user_meta( $key ) {
-                if( !is_user_logged_in() ) {                    
-                    Logger::write_log( 'DEBUG', 'Cannot delete user meta ' . $key . ' for user that is not logged' );
-                    return false;
-                }
-
-                Logger::write_log( 'DEBUG', 'Deleting user meta' . $key );
-                delete_user_meta( get_current_user_id(), $key ); // Potentially the user is logged on as a Worp<
-            }
-
         }
     }
 ?>

@@ -23,22 +23,30 @@
 
             // Verify AJAX request
             $current_user = Services::verify_ajax_request( 'to get the tokencache for a user' );
+            $use_v2 = Helpers::get_global_boolean_var( 'WPO_USE_V2' );
 
             // Verify data POSTed
+            $posted_vars = $use_v2
+                ? array( 'action', 'scope' )
+                : array( 'action', 'resource' );
+            
             if( Helpers::get_global_boolean_var( 'WPO_ENABLE_NONCE_CHECK' ) )
-                self::verify_POSTed_data( array( 'action', 'nonce', 'resource' ) ); // -> wp_die()
-            else
-                self::verify_POSTed_data( array( 'action', 'resource' ) ); // -> wp_die()
+                $posted_vars[] = 'nonce';
 
-            if( !empty( $_POST[ 'resource' ] ) ) {
-                $resource_info_segments = explode( ',',  $_POST[ 'resource' ] );
-                $bearer_token = Auth::get_bearer_token( $resource_info_segments[1] );
+            self::verify_POSTed_data( $posted_vars ); // -> wp_die()
+
+            $access_token = $use_v2
+                ? Auth::get_bearer_token_v2( $_POST[ 'scope' ] )
+                : Auth::get_bearer_token( $_POST[ 'resource' ] );
                 
-                if( is_wp_error( $bearer_token ) )
-                    self::AJAX_response( 'NOK', $bearer_token->get_error_code(), $bearer_token->get_error_message(), null );
-            }
+            if( is_wp_error( $access_token ) )
+                self::AJAX_response( 'NOK', $access_token->get_error_code(), $access_token->get_error_message(), null );
 
-            self::AJAX_response( 'OK', '', '', $bearer_token );
+            $result = new \stdClass();
+            $result->expiry = $access_token->expiry;
+            $result->accessToken = $access_token->access_token;
+
+            self::AJAX_response( 'OK', '', '', json_encode( $result ) );
         }
 
         /**
