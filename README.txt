@@ -3,7 +3,7 @@ Contributors: wpo365
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
 Tested up to: 4.9
-Stable tag: 6.0
+Stable tag: 6.1
 Requires PHP: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -81,15 +81,22 @@ Please refer to [this post](https://www.wpo365.com/how-to-install-wordpress-offi
 
 == Upgrade Notice ==
 
-When upgrading from version 5.3 to 6 please make sure to review the following configuration options:
+When upgrading from version 5.3 to 6.x please make sure to review the following configuration options:
 
 - Azure AD - Your (own) domain
 - Azure AD - Default domain
 - Integration - Enable token service
 - Integration - Check nonce
-- Erros - [all]
+- Errors - [all]
 
 == Changelog ==
+
+= 6.1 =
+* Change: Removed the (Redux) WPO365 Option for scope
+* Change: Support for Azure AD v2.0 authentication and access token requests (preview, more information will follow in a separate upcoming post)
+* Change: Updated the access token (AJAX) service API to support Azure AD v2.0 scope based token requests
+* Change: Authorization, access and refresh codes and tokens are now stored as JSON encoded classes
+* Change: Previously deprecated methods have been removed (other / third party plugins and apps must integrate using the API now)
 
 = 6.0 =
 * Change: A configuration option has been added to always redirect a user to a designated page upon signin into the website
