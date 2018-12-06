@@ -2,7 +2,7 @@
 Contributors: wpo365
 Tags: office 365, azure active directory, authentication, login, oauth, microsoft
 Requires at least: 4.8.1
-Tested up to: 4.9
+Tested up to: 5.0
 Stable tag: 6.1
 Requires PHP: 5.5.0
 License: GPLv2 or later
